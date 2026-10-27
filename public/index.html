@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laung Elaichi Cafe - POS & Accounting System</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        amber: { 850: '#78350f', 950: '#451a03' }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Socket.IO Client -->
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .floating-sticker { animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-10px) rotate(3deg); } }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-amber-500 selection:text-slate-950">
+
+    <!-- Floating 4D Animated Stickers Background Accent -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0 opacity-20">
+        <div class="absolute top-10 left-10 text-5xl floating-sticker" style="animation-delay: 0s;">☕</div>
+        <div class="absolute top-20 right-20 text-5xl floating-sticker" style="animation-delay: 1s;">🥟</div>
+        <div class="absolute bottom-20 left-1/4 text-5xl floating-sticker" style="animation-delay: 2s;">🫖</div>
+        <div class="absolute bottom-10 right-1/3 text-5xl floating-sticker" style="animation-delay: 1.5s;">🔥</div>
+    </div>
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-tr from-amber-600 to-amber-400 p-2.5 rounded-xl shadow-lg shadow-amber-500/20 text-slate-950 font-black text-xl">
+                    <i class="fa-solid fa-mug-hot"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
+                        Laung Elaichi Cafe
+                    </h1>
+                    <p class="text-xs text-slate-400 flex items-center gap-1">
+                        <i class="fa-solid fa-location-dot text-amber-500"></i> Bangla Chauraha, Beside Mahakal Kachori, Lucknow
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tab Navigation & Live Clock -->
+            <div class="flex items-center gap-3">
+                <div class="bg-slate-800 p-1 rounded-xl flex gap-1 border border-slate-700">
+                    <button onclick="switchTab('pos')" id="tab-pos" class="px-4 py-2 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md">
+                        <i class="fa-solid fa-cash-register mr-1.5"></i> POS Billing
+                    </button>
+                    <button onclick="switchTab('accounting')" id="tab-accounting" class="px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white">
+                        <i class="fa-solid fa-chart-pie mr-1.5"></i> Accountancy & Reports
+                    </button>
+                </div>
+                <div id="live-clock" class="hidden md:block text-xs font-mono bg-slate-800/80 px-3 py-2 rounded-xl border border-slate-700 text-amber-400"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- ================================= TAB 1: POS BILLING ================================= -->
+        <div id="view-pos" class="contents">
+            <!-- Left Panel: Menu Items by Code -->
+            <div class="lg:col-span-7 flex flex-col gap-4">
+                <!-- Search & Filters -->
+                <div class="glass-card p-4 rounded-2xl flex flex-col sm:flex-row gap-3">
+                    <div class="relative flex-grow">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+                        <input type="text" id="menu-search" oninput="filterMenu()" placeholder="Search items or type code (e.g., T10, MSV30)..." class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-amber-500 text-white placeholder-slate-500">
+                    </div>
+                    <div class="flex gap-2 overflow-x-auto pb-1 sm:pb-0">
+                        <button onclick="filterCategory('all')" class="cat-btn px-3 py-2 rounded-xl text-xs font-semibold bg-amber-500 text-slate-950 shrink-0">All</button>
+                        <button onclick="filterCategory('tea')" class="cat-btn px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 shrink-0">Chai</button>
+                        <button onclick="filterCategory('momos')" class="cat-btn px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 shrink-0">Momos</button>
+                        <button onclick="filterCategory('maggie')" class="cat-btn px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 shrink-0">Maggie</button>
+                        <button onclick="filterCategory('masala')" class="cat-btn px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 shrink-0">Masala</button>
+                    </div>
+                </div>
+
+                <!-- Menu Grid -->
+                <div id="menu-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto max-h-[calc(100vh-250px)] pr-1">
+                    <!-- Dynamic Menu Items Injected via JS -->
+                </div>
+            </div>
+
+            <!-- Right Panel: Cart & Checkout -->
+            <div class="lg:col-span-5 flex flex-col gap-4">
+                <div class="glass-card p-5 rounded-2xl flex flex-col h-[calc(100vh-110px)] sticky top-20">
+                    <!-- Header -->
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-3">
+                        <h2 class="font-bold text-base flex items-center gap-2">
+                            <i class="fa-solid fa-receipt text-amber-500"></i> Current Bill Order
+                        </h2>
+                        <button onclick="clearCart()" class="text-xs text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 px-2.5 py-1 rounded-lg transition-colors">
+                            <i class="fa-solid fa-trash mr-1"></i> Clear Cart
+                        </button>
+                    </div>
+
+                    <!-- Customer Info -->
+                    <div class="grid grid-cols-2 gap-2 mb-3">
+                        <input type="text" id="cust-name" placeholder="Customer Name" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
+                        <input type="text" id="cust-phone" placeholder="Phone Number" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
+                    </div>
+
+                    <!-- Cart Items List -->
+                    <div id="cart-items" class="flex-grow overflow-y-auto space-y-2 pr-1 mb-3">
+                        <div class="text-center text-slate-500 py-12 text-sm">
+                            <i class="fa-solid fa-basket-shopping text-3xl mb-2 block opacity-40"></i>
+                            Cart is empty. Click items or type codes to add.
+                        </div>
+                    </div>
+
+                    <!-- Bill Summary Calculations -->
+                    <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 space-y-1.5 mb-3 text-xs">
+                        <div class="flex justify-between text-slate-400">
+                            <span>Subtotal</span>
+                            <span id="bill-subtotal">₹0.00</span>
+                        </div>
+                        <div class="flex justify-between text-slate-400">
+                            <span>Taxes & Charges (0%)</span>
+                            <span>₹0.00</span>
+                        </div>
+                        <div class="flex justify-between text-slate-400">
+                            <span>Discount</span>
+                            <span>-₹0.00</span>
+                        </div>
+                        <div class="border-t border-slate-800 pt-1.5 flex justify-between font-bold text-sm text-amber-400">
+                            <span>Grand Total</span>
+                            <span id="bill-grand-total">₹0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method Selector -->
+                    <div class="grid grid-cols-3 gap-2 mb-3">
+                        <button onclick="setPaymentMethod('UPI')" id="pay-upi" class="pay-btn py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition-all border border-amber-400">UPI</button>
+                        <button onclick="setPaymentMethod('CASH')" id="pay-cash" class="pay-btn py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 transition-all border border-slate-700">Cash</button>
+                        <button onclick="setPaymentMethod('CARD')" id="pay-card" class="pay-btn py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 transition-all border border-slate-700">Card</button>
+                    </div>
+
+                    <!-- Checkout Button -->
+                    <button onclick="checkoutOrder()" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold py-3 rounded-xl shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2 text-sm">
+                        <i class="fa-solid fa-print"></i> Complete Bill & Print Invoice
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================= TAB 2: ACCOUNTING & REPORTS ================================= -->
+        <div id="view-accounting" class="hidden col-span-12 flex flex-col gap-6">
+            <!-- Summary Stats Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="glass-card p-5 rounded-2xl flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-semibold">Total Revenue</p>
+                        <h3 id="rep-total-revenue" class="text-2xl font-black text-amber-400 mt-1">₹0.00</h3>
+                    </div>
+                    <div class="bg-amber-500/10 p-3.5 rounded-xl text-amber-500 text-xl">
+                        <i class="fa-solid fa-indian-rupee-sign"></i>
+                    </div>
+                </div>
+                <div class="glass-card p-5 rounded-2xl flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-semibold">Total Bills Generated</p>
+                        <h3 id="rep-total-bills" class="text-2xl font-black text-orange-400 mt-1">0</h3>
+                    </div>
+                    <div class="bg-orange-500/10 p-3.5 rounded-xl text-orange-500 text-xl">
+                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                    </div>
+                </div>
+                <div class="glass-card p-5 rounded-2xl flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-semibold">Primary Payment Mode</p>
+                        <h3 id="rep-top-payment" class="text-xl font-bold text-emerald-400 mt-1">UPI</h3>
+                    </div>
+                    <div class="bg-emerald-500/10 p-3.5 rounded-xl text-emerald-500 text-xl">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Bills Ledger Table -->
+            <div class="glass-card rounded-2xl p-5 overflow-hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-base flex items-center gap-2">
+                        <i class="fa-solid fa-book text-amber-500"></i> Accountancy Bill Records Ledger
+                    </h3>
+                    <button onclick="loadAccountingReports()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-xl transition-all flex items-center gap-1.5">
+                        <i class="fa-solid fa-rotate-right"></i> Refresh Data
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-900/80 text-slate-400 uppercase font-semibold border-b border-slate-800">
+                            <tr>
+                                <th class="p-3">Invoice No</th>
+                                <th class="p-3">Date / Time</th>
+                                <th class="p-3">Customer</th>
+                                <th class="p-3">Items Ordered</th>
+                                <th class="p-3">Payment</th>
+                                <th class="p-3 text-right">Amount</th>
+                                <th class="p-3 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ledger-table-body" class="divide-y divide-slate-800/60">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Success / Invoice Modal -->
+    <div id="invoice-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl relative animate-scaleUp">
+            <div class="text-center mb-4">
+                <div class="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-2 text-xl">
+                    <i class="fa-solid fa-check"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white">Order Completed Successfully!</h3>
+                <p class="text-xs text-slate-400" id="modal-inv-number">Invoice #LEC-20261027-0001</p>
+            </div>
+            
+            <div class="bg-slate-950 p-4 rounded-xl font-mono text-xs text-slate-300 space-y-1 mb-4 max-h-60 overflow-y-auto border border-slate-800" id="modal-receipt-preview">
+                <!-- Receipt Preview -->
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="downloadPDFInvoice()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-download"></i> Download PDF
+                </button>
+                <button onclick="printThermalInvoice()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20">
+                    <i class="fa-solid fa-print"></i> Thermal Print
+                </button>
+            </div>
+            <button onclick="closeModal()" class="w-full mt-3 text-xs text-slate-500 hover:text-slate-300 text-center">
+                Close & Return to POS
+            </button>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        const socket = io();
+
+        // Complete Menu Data with Codes as requested
+        const menuItems = [
+            { code: "T10", name: "Sukoon ki Chai", variant: "Disposal", price: 10, category: "tea", icon: "☕" },
+            { code: "T15", name: "Kullad Wali Chai", variant: "Kullad", price: 15, category: "tea", icon: "🍵" },
+            { code: "T20", name: "Special Chai", variant: "Kullad", price: 20, category: "tea", icon: "🫖" },
+            { code: "T25", name: "Rajwadi Chai", variant: "Kullad Royal", price: 25, category: "tea", icon: "👑" },
+
+            { code: "MSV30", name: "Momo (Steam) Veg", variant: "Half", price: 30, category: "momos", icon: "🥟" },
+            { code: "MSV60", name: "Momo (Steam) Veg", variant: "Full", price: 60, category: "momos", icon: "🥟" },
+            { code: "MSP50", name: "Momo (Steam) Paneer", variant: "Half", price: 50, category: "momos", icon: "🧀" },
+            { code: "MSP100", name: "Momo (Steam) Paneer", variant: "Full", price: 100, category: "momos", icon: "🧀" },
+
+            { code: "MFV50", name: "Momo (Fry) Veg", variant: "Half", price: 50, category: "momos", icon: "🔥" },
+            { code: "MFV90", name: "Momo (Fry) Veg", variant: "Full", price: 90, category: "momos", icon: "🔥" },
+            { code: "MFP70", name: "Momo (Fry) Paneer", variant: "Half", price: 70, category: "momos", icon: "🔥" },
+            { code: "MFP130", name: "Momo (Fry) Paneer", variant: "Full", price: 130, category: "momos", icon: "🔥" },
+
+            { code: "MCV60", name: "Momo (Crunchy) Veg", variant: "Half", price: 60, category: "momos", icon: "✨" },
+            { code: "MCV100", name: "Momo (Crunchy) Veg", variant: "Full", price: 100, category: "momos", icon: "✨" },
+
+            { code: "M30", name: "Maggie", variant: "Half", price: 30, category: "maggie", icon: "🍜" },
+            { code: "M50", name: "Maggie", variant: "Full", price: 50, category: "maggie", icon: "🍜" },
+            { code: "SM45", name: "Special Maggie", variant: "Half", price: 45, category: "maggie", icon: "⭐" },
+            { code: "SM80", name: "Special Maggie", variant: "Full", price: 80, category: "maggie", icon: "⭐" },
+
+            { code: "CM50", name: "Chai Post Mix Masala", variant: "Mini Pkt", price: 50, category: "masala", icon: "📦" },
+            { code: "CM200", name: "Chai Post Mix Masala", variant: "Mega Pkt", price: 200, category: "masala", icon: "📦" }
+        ];
+
+        let cart = [];
+        let selectedPayment = 'UPI';
+        let currentFilter = 'all';
+        let activeInvoiceNo = '';
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMenu(menuItems);
+            updateClock();
+            setInterval(updateClock, 1000);
+            loadAccountingReports();
+
+            // Real-time listener for orders across terminals
+            socket.on('new-bill-created', (bill) => {
+                console.log('New bill recorded in real-time:', bill);
+                loadAccountingReports();
+            });
+        });
+
+        // Live Clock
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('live-clock').innerText = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+        }
+
+        // Switch Tabs
+        function switchTab(tab) {
+            if (tab === 'pos') {
+                document.getElementById('view-pos').classList.remove('hidden');
+                document.getElementById('view-pos').classList.add('contents');
+                document.getElementById('view-accounting').classList.add('hidden');
+                document.getElementById('tab-pos').className = "px-4 py-2 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md";
+                document.getElementById('tab-accounting').className = "px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white";
+            } else {
+                document.getElementById('view-pos').classList.remove('contents');
+                document.getElementById('view-pos').classList.add('hidden');
+                document.getElementById('view-accounting').classList.remove('hidden');
+                document.getElementById('tab-accounting').className = "px-4 py-2 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md";
+                document.getElementById('tab-pos').className = "px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white";
+                loadAccountingReports();
+            }
+        }
+
+        // Render Menu Cards
+        function renderMenu(items) {
+            const grid = document.getElementById('menu-grid');
+            grid.innerHTML = '';
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "glass-card bg-slate-900/80 hover:bg-slate-800/90 p-3 rounded-2xl cursor-pointer transition-all border border-slate-800 hover:border-amber-500/50 flex flex-col justify-between group";
+                card.onclick = () => addToCart(item.code);
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-1">
+                            <span class="text-xl group-hover:scale-110 transition-transform">${item.icon}</span>
+                            <span class="text-[10px] font-mono bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-md font-bold">${item.code}</span>
+                        </div>
+                        <h4 class="font-bold text-xs text-white leading-snug">${item.name}</h4>
+                        <p class="text-[10px] text-slate-400">${item.variant}</p>
+                    </div>
+                    <div class="mt-2 flex justify-between items-center pt-2 border-t border-slate-800/60">
+                        <span class="font-extrabold text-amber-400 text-xs">₹${item.price}</span>
+                        <span class="w-6 h-6 rounded-lg bg-slate-800 group-hover:bg-amber-500 group-hover:text-slate-950 text-slate-300 flex items-center justify-center text-xs transition-colors">
+                            <i class="fa-solid fa-plus"></i>
+                        </span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Filter by Category
+        function filterCategory(cat) {
+            currentFilter = cat;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.className = "cat-btn px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 shrink-0";
+            });
+            event.target.className = "cat-btn px-3 py-2 rounded-xl text-xs font-semibold bg-amber-500 text-slate-950 shrink-0";
+
+            if (cat === 'all') {
+                renderMenu(menuItems);
+            } else {
+                renderMenu(menuItems.filter(i => i.category === cat));
+            }
+        }
+
+        // Filter by Search or Code
+        function filterMenu() {
+            const query = document.getElementById('menu-search').value.toLowerCase();
+            const filtered = menuItems.filter(i => i.name.toLowerCase().includes(query) || i.code.toLowerCase().includes(query));
+            renderMenu(filtered);
+        }
+
+        // Add to Cart
+        function addToCart(code) {
+            const item = menuItems.find(i => i.code === code);
+            if (!item) return;
+
+            const existing = cart.find(i => i.code === code);
+            if (existing) {
+                existing.qty += 1;
+                existing.total = existing.qty * existing.price;
+            } else {
+                cart.push({
+                    code: item.code,
+                    name: item.name,
+                    variant: item.variant,
+                    price: item.price,
+                    qty: 1,
+                    total: item.price
+                });
+            }
+            renderCart();
+        }
+
+        // Update Cart Quantity
+        function updateQty(code, change) {
+            const index = cart.findIndex(i => i.code === code);
+            if (index !== -1) {
+                cart[index].qty += change;
+                cart[index].total = cart[index].qty * cart[index].price;
+                if (cart[index].qty <= 0) {
+                    cart.splice(index, 1);
+                }
+            }
+            renderCart();
+        }
+
+        // Clear Cart
+        function clearCart() {
+            cart = [];
+            renderCart();
+        }
+
+        // Render Cart UI
+        function renderCart() {
+            const container = document.getElementById('cart-items');
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-slate-500 py-12 text-sm">
+                        <i class="fa-solid fa-basket-shopping text-3xl mb-2 block opacity-40"></i>
+                        Cart is empty. Click items or type codes to add.
+                    </div>
+                `;
+                document.getElementById('bill-subtotal').innerText = '₹0.00';
+                document.getElementById('bill-grand-total').innerText = '₹0.00';
+                return;
+            }
+
+            container.innerHTML = '';
+            let subtotal = 0;
+
+            cart.forEach(item => {
+                subtotal += item.total;
+                const div = document.createElement('div');
+                div.className = "bg-slate-900/90 border border-slate-800 p-2.5 rounded-xl flex justify-between items-center gap-2";
+                div.innerHTML = `
+                    <div class="flex-grow">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-mono bg-amber-500/10 text-amber-400 px-1.5 py-0.5 rounded font-bold">${item.code}</span>
+                            <h5 class="font-bold text-xs text-white">${item.name} (${item.variant})</h5>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-0.5">₹${item.price} × ${item.qty} = <span class="text-amber-400 font-bold">₹${item.total}</span></p>
+                    </div>
+                    <div class="flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded-lg border border-slate-800">
+                        <button onclick="updateQty('${item.code}', -1)" class="text-slate-400 hover:text-white px-1 text-xs"><i class="fa-solid fa-minus"></i></button>
+                        <span class="text-xs font-bold font-mono w-4 text-center">${item.qty}</span>
+                        <button onclick="updateQty('${item.code}', 1)" class="text-slate-400 hover:text-white px-1 text-xs"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+
+            document.getElementById('bill-subtotal').innerText = `₹${subtotal.toFixed(2)}`;
+            document.getElementById('bill-grand-total').innerText = `₹${subtotal.toFixed(2)}`;
+        }
+
+        // Set Payment Method
+        function setPaymentMethod(method) {
+            selectedPayment = method;
+            ['UPI', 'CASH', 'CARD'].forEach(m => {
+                const btn = document.getElementById(`pay-${m.toLowerCase()}`);
+                if (m === method) {
+                    btn.className = "pay-btn py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition-all border border-amber-400";
+                } else {
+                    btn.className = "pay-btn py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 transition-all border border-slate-700";
+                }
+            });
+        }
+
+        // Checkout & Create Bill
+        async function checkoutOrder() {
+            if (cart.length === 0) {
+                alert('Please add items to cart before checkout.');
+                return;
+            }
+
+            const customerName = document.getElementById('cust-name').value || 'Walk-in Guest';
+            const customerPhone = document.getElementById('cust-phone').value || 'N/A';
+            const subtotal = cart.reduce((acc, i) => acc + i.total, 0);
+
+            const orderPayload = {
+                customerName,
+                customerPhone,
+                paymentMethod: selectedPayment,
+                items: cart,
+                subtotal,
+                tax: 0,
+                discount: 0,
+                grandTotal: subtotal
+            };
+
+            try {
+                const res = await fetch('/api/bills/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderPayload)
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    activeInvoiceNo = data.bill.invoiceNo;
+                    showInvoiceModal(data.bill);
+                    cart = [];
+                    renderCart();
+                    document.getElementById('cust-name').value = '';
+                    document.getElementById('cust-phone').value = '';
+                } else {
+                    alert('Error saving bill: ' + data.message);
+                }
+            } catch (err) {
+                console.error('Network error during checkout:', err);
+                // Fallback local mock invoice generation if server offline
+                activeInvoiceNo = 'LEC-' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '-' + Math.floor(1000 + Math.random() * 9000);
+                showInvoiceModal({
+                    invoiceNo: activeInvoiceNo,
+                    createdAt: new Date(),
+                    customerName,
+                    paymentMethod: selectedPayment,
+                    items: [...cart],
+                    grandTotal: subtotal
+                });
+                cart = [];
+                renderCart();
+            }
+        }
+
+        // Show Invoice Modal
+        function showInvoiceModal(bill) {
+            document.getElementById('modal-inv-number').innerText = `Invoice #${bill.invoiceNo}`;
+            
+            let receiptHTML = `
+                <div class="text-center font-bold">LAUNG ELAICHI CAFE</div>
+                <div class="text-[9px] text-center text-slate-400">Bangla Chauraha, Beside Mahakal Kachori, Lucknow</div>
+                <div>----------------------------------------</div>
+                <div>Inv: ${bill.invoiceNo}</div>
+                <div>Date: ${new Date(bill.createdAt).toLocaleString()}</div>
+                <div>Customer: ${bill.customerName}</div>
+                <div>Payment: ${bill.paymentMethod}</div>
+                <div>----------------------------------------</div>
+                <div>Item            Qty   Price   Total</div>
+            `;
+            
+            bill.items.forEach(i => {
+                receiptHTML += `<div>${i.name.substring(0, 12).padEnd(13)} ${i.qty.toString().padStart(2)}   ₹${i.price.toString().padStart(3)}   ₹${i.total}</div>`;
+            });
+
+            receiptHTML += `
+                <div>----------------------------------------</div>
+                <div class="text-right font-bold text-amber-400">GRAND TOTAL: ₹${bill.grandTotal}</div>
+                <div>----------------------------------------</div>
+                <div class="text-center italic text-[9px]">Thank You! Visit Again!</div>
+            `;
+
+            document.getElementById('modal-receipt-preview').innerHTML = receiptHTML;
+            document.getElementById('invoice-modal').classList.remove('hidden');
+        }
+
+        // Download PDF Invoice
+        function downloadPDFInvoice() {
+            window.open(`/api/bills/pdf/${activeInvoiceNo}`, '_blank');
+        }
+
+        // Print Thermal Invoice
+        function printThermalInvoice() {
+            const printContent = document.getElementById('modal-receipt-preview').innerHTML;
+            const originalBody = document.body.innerHTML;
+            document.body.innerHTML = `<div style="font-family: monospace; width: 280px; padding: 10px;">${printContent}</div>`;
+            window.print();
+            document.body.innerHTML = originalBody;
+            location.reload();
+        }
+
+        // Close Modal
+        function closeModal() {
+            document.getElementById('invoice-modal').classList.add('hidden');
+        }
+
+        // Load Accounting Reports
+        async function loadAccountingReports() {
+            try {
+                const res = await fetch('/api/reports/summary');
+                const data = await res.json();
+
+                if (data.success && data.totalRevenue !== undefined) {
+                    document.getElementById('rep-total-revenue').innerText = `₹${data.totalRevenue.toFixed(2)}`;
+                    document.getElementById('rep-total-bills').innerText = data.totalBills;
+
+                    const payments = data.paymentBreakdown;
+                    const topPay = Object.keys(payments).reduce((a, b) => payments[a] > payments[b] ? a : b, 'UPI');
+                    document.getElementById('rep-top-payment').innerText = `${topPay} (₹${payments[topPay]})`;
+
+                    const tbody = document.getElementById('ledger-table-body');
+                    tbody.innerHTML = '';
+
+                    if (data.recentBills.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-500">No bill records found yet.</td></tr>`;
+                        return;
+                    }
+
+                    data.recentBills.forEach(bill => {
+                        const tr = document.createElement('tr');
+                        tr.className = "hover:bg-slate-900/50 transition-colors";
+                        tr.innerHTML = `
+                            <td class="p-3 font-mono font-bold text-amber-400">${bill.invoiceNo}</td>
+                            <td class="p-3 text-slate-400">${new Date(bill.createdAt).toLocaleTimeString()}</td>
+                            <td class="p-3 font-semibold text-white">${bill.customerName}</td>
+                            <td class="p-3 text-slate-300">${bill.items.map(i => `${i.name} (${i.qty})`).join(', ')}</td>
+                            <td class="p-3"><span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">${bill.paymentMethod}</span></td>
+                            <td class="p-3 text-right font-black text-amber-400">₹${bill.grandTotal}</td>
+                            <td class="p-3 text-center">
+                                <a href="/api/bills/pdf/${bill.invoiceNo}" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-amber-400 px-2.5 py-1 rounded-lg text-xs transition-colors inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-file-pdf"></i> PDF
+                                </a>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            } catch (err) {
+                console.log('Accounting summary sync note: Running local interface.');
+            }
+        }
+    </script>
+</body>
+</html>
