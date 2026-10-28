@@ -1,6 +1,6 @@
 /**
  * LAUNG ELAICHI CAFE - COMPLETE POS & ACCOUNTING SERVER
- * Location: Bangla Chauraha, Beside Mahakal Kachori
+ * Location: Bangla Chauraha, Beside Mahakal Kachori, Lucknow
  * Tech Stack: Express, Socket.IO, Mongoose, PDFKit
  */
 
@@ -63,30 +63,36 @@ const billSchema = new mongoose.Schema({
 
 const Bill = mongoose.model('Bill', billSchema);
 
-// Menu Inventory Data
+// Synchronized Menu Inventory Data
 const MENU_DATA = [
-    { code: "T10", name: "Sukoon ki Chai", variant: "Disposal", price: 10, category: "tea" },
-    { code: "T15", name: "Kullad Wali Chai", variant: "Kullad", price: 15, category: "tea" },
-    { code: "T20", name: "Special Chai", variant: "Kullad", price: 20, category: "tea" },
-    { code: "T25", name: "Rajwadi Chai", variant: "Kullad Royal", price: 25, category: "tea" },
+    { code: "T10", name: "Sukoon Ki Chai", variant: "Regular", price: 10, category: "tea" },
+    { code: "T15", name: "Kulhad Chai", variant: "Kulhad", price: 15, category: "tea" },
+    { code: "T20", name: "Special Chai", variant: "Kulhad", price: 20, category: "tea" },
+    { code: "T25", name: "Rajwadi Chai", variant: "Royal Kullad", price: 25, category: "tea" },
+    { code: "CS20", name: "Coffee Small", variant: "Regular", price: 20, category: "coffee" },
+    { code: "CK25", name: "Coffee Kulhad", variant: "Kulhad", price: 25, category: "coffee" },
+    { code: "CS30", name: "Coffee Special", variant: "Special", price: 30, category: "coffee" },
+    { code: "BM20", name: "Bun Makkhan", variant: "Standard", price: 20, category: "bakery" },
 
-    { code: "MSV30", name: "Momo (Steam) Veg", variant: "Half", price: 30, category: "momos" },
-    { code: "MSV60", name: "Momo (Steam) Veg", variant: "Full", price: 60, category: "momos" },
-    { code: "MSP50", name: "Momo (Steam) Paneer", variant: "Half", price: 50, category: "momos" },
-    { code: "MSP100", name: "Momo (Steam) Paneer", variant: "Full", price: 100, category: "momos" },
+    { code: "MSV30", name: "Veg Steam Momo", variant: "Half", price: 30, category: "momos" },
+    { code: "MSV50", name: "Veg Steam Momo", variant: "Full", price: 50, category: "momos" },
+    { code: "MSP40", name: "Paneer Steam Momo", variant: "Half", price: 40, category: "momos" },
+    { code: "MSP70", name: "Paneer Steam Momo", variant: "Full", price: 70, category: "momos" },
 
-    { code: "MFV50", name: "Momo (Fry) Veg", variant: "Half", price: 50, category: "momos" },
-    { code: "MFV90", name: "Momo (Fry) Veg", variant: "Full", price: 90, category: "momos" },
-    { code: "MFP70", name: "Momo (Fry) Paneer", variant: "Half", price: 70, category: "momos" },
-    { code: "MFP130", name: "Momo (Fry) Paneer", variant: "Full", price: 130, category: "momos" },
+    { code: "MFV40", name: "Veg Fry Momo", variant: "Half", price: 40, category: "momos" },
+    { code: "MFV70", name: "Veg Fry Momo", variant: "Full", price: 70, category: "momos" },
+    { code: "MFP50", name: "Paneer Fry Momo", variant: "Half", price: 50, category: "momos" },
+    { code: "MFP90", name: "Paneer Fry Momo", variant: "Full", price: 90, category: "momos" },
 
-    { code: "MCV60", name: "Momo (Crunchy) Veg", variant: "Half", price: 60, category: "momos" },
-    { code: "MCV100", name: "Momo (Crunchy) Veg", variant: "Full", price: 100, category: "momos" },
+    { code: "MCV50", name: "Veg Crunchy Momo", variant: "Half", price: 50, category: "momos" },
+    { code: "MCV90", name: "Veg Crunchy Momo", variant: "Full", price: 90, category: "momos" },
+    { code: "MCP55", name: "Paneer Crunchy Momo", variant: "Half", price: 55, category: "momos" },
+    { code: "MCP100", name: "Paneer Crunchy Momo", variant: "Full", price: 100, category: "momos" },
 
-    { code: "M30", name: "Maggie", variant: "Half", price: 30, category: "maggie" },
-    { code: "M50", name: "Maggie", variant: "Full", price: 50, category: "maggie" },
-    { code: "SM45", name: "Special Maggie", variant: "Half", price: 45, category: "maggie" },
-    { code: "SM80", name: "Special Maggie", variant: "Full", price: 80, category: "maggie" },
+    { code: "MKV55", name: "Veg Kurkure Momo", variant: "Half", price: 55, category: "momos" },
+    { code: "MKV100", name: "Veg Kurkure Momo", variant: "Full", price: 100, category: "momos" },
+    { code: "MKP60", name: "Paneer Kurkure Momo", variant: "Half", price: 60, category: "momos" },
+    { code: "MKP110", name: "Paneer Kurkure Momo", variant: "Full", price: 110, category: "momos" },
 
     { code: "CM50", name: "Chai Post Mix Masala", variant: "Mini Pkt", price: 50, category: "masala" },
     { code: "CM200", name: "Chai Post Mix Masala", variant: "Mega Pkt", price: 200, category: "masala" }
@@ -101,12 +107,10 @@ mongoose.connect(MONGO_URI)
 // API ROUTES
 // ==========================================
 
-// Get Menu Items
 app.get('/api/menu', (req, res) => {
     res.json({ success: true, menu: MENU_DATA });
 });
 
-// Create New Bill (POS Checkout)
 app.post('/api/bills/create', async (req, res) => {
     try {
         const { customerName, customerPhone, paymentMethod, items, subtotal, tax, discount, grandTotal } = req.body;
@@ -115,7 +119,6 @@ app.post('/api/bills/create', async (req, res) => {
             return res.status(400).json({ success: false, message: 'Cart cannot be empty.' });
         }
 
-        // Generate Invoice Number LEC-YYYYMMDD-XXXX
         const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
         const randomNum = Math.floor(1000 + Math.random() * 9000);
         const invoiceNo = `LEC-${todayStr}-${randomNum}`;
@@ -140,7 +143,6 @@ app.post('/api/bills/create', async (req, res) => {
             savedBill = await billDoc.save();
         }
 
-        // Broadcast to Real-Time Dashboard & KDS (Kitchen Display System)
         io.emit('new-bill-created', savedBill);
 
         res.status(201).json({
@@ -155,7 +157,6 @@ app.post('/api/bills/create', async (req, res) => {
     }
 });
 
-// Get Accounting Summary / Reports
 app.get('/api/reports/summary', async (req, res) => {
     try {
         if (mongoose.connection.readyState === 1) {
@@ -196,7 +197,7 @@ app.get('/api/reports/summary', async (req, res) => {
     }
 });
 
-// Thermal PDF Invoice Generator Route
+// Professional Thermal PDF Invoice Generator Route
 app.get('/api/bills/pdf/:invoiceNo', async (req, res) => {
     try {
         const { invoiceNo } = req.params;
@@ -207,92 +208,113 @@ app.get('/api/bills/pdf/:invoiceNo', async (req, res) => {
         }
 
         if (!billData) {
-            // Mock object for testing/local offline print preview
             billData = {
-                invoiceNo: invoiceNo,
+                invoiceNo: invoiceNo || 'LEC-20261027-9999',
                 createdAt: new Date(),
-                customerName: 'Walk-in Customer',
+                customerName: 'Walk-in Guest',
                 paymentMethod: 'UPI',
                 items: [
                     { name: 'Special Chai', variant: 'Kullad', price: 20, qty: 2, total: 40 },
-                    { name: 'Momo (Steam) Veg', variant: 'Full', price: 60, qty: 1, total: 60 }
+                    { name: 'Veg Steam Momo', variant: 'Full', price: 50, qty: 1, total: 50 }
                 ],
-                subtotal: 100,
+                subtotal: 90,
                 tax: 0,
-                grandTotal: 100
+                discount: 0,
+                grandTotal: 90
             };
         }
 
-        const doc = new PDFDocument({ size: [226, 600], margin: 10 }); // Thermal receipt 80mm width approx
+        const doc = new PDFDocument({ size: [226, 500], margin: 12 });
 
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `inline; filename=Invoice_${invoiceNo}.pdf`);
+        res.setHeader('Content-Disposition', `inline; filename=Invoice_${billData.invoiceNo}.pdf`);
 
         doc.pipe(res);
 
         // Header
-        doc.fontSize(12).font('Helvetica-Bold').text('LAUNG ELAICHI CAFE', { align: 'center' });
-        doc.fontSize(7).font('Helvetica').text('Bangla Chauraha, Beside Mahakal Kachori', { align: 'center' });
+        doc.font('Helvetica-Bold').fontSize(13).text('LAUNG ELAICHI CAFE', { align: 'center' });
+        doc.font('Helvetica').fontSize(7).fillColor('#555555');
+        doc.text('Bangla Chauraha, Beside Mahakal Kachori', { align: 'center' });
         doc.text('Lucknow, Uttar Pradesh', { align: 'center' });
-        doc.text('------------------------------------------------', { align: 'center' });
+        doc.moveDown(0.5);
 
         // Invoice Meta
-        doc.fontSize(8).text(`Inv: ${billData.invoiceNo}`);
-        doc.text(`Date: ${new Date(billData.createdAt).toLocaleString()}`);
-        doc.text(`Payment: ${billData.paymentMethod}`);
-        doc.text(`Customer: ${billData.customerName}`);
-        doc.text('------------------------------------------------');
-
-        // Items Header
-        doc.font('Helvetica-Bold').text('Item                   Qty   Price   Total');
+        doc.fillColor('#000000').fontSize(7).font('Helvetica-Bold');
+        doc.text(`INVOICE: ${billData.invoiceNo}`);
         doc.font('Helvetica');
+        doc.text(`DATE: ${new Date(billData.createdAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}`);
+        doc.text(`CUSTOMER: ${billData.customerName}`);
+        doc.text(`PAYMENT MODE: ${billData.paymentMethod}`);
+        doc.text('----------------------------------------------------------');
 
+        // Table Headers
+        doc.font('Helvetica-Bold').fontSize(7);
+        doc.text('ITEM / VARIANT', 12, doc.y, { continued: true });
+        doc.text('QTY', 115, doc.y, { continued: true, align: 'right' });
+        doc.text('PRICE', 150, doc.y, { continued: true, align: 'right' });
+        doc.text('TOTAL', 190, doc.y, { align: 'right' });
+        
+        doc.font('Helvetica').text('----------------------------------------------------------');
+
+        // Items Loop
         billData.items.forEach(item => {
-            const line = `${item.name.substring(0, 15).padEnd(16)} ${item.qty.toString().padStart(2)}  ₹${item.price.toString().padStart(3)}  ₹${item.total}`;
-            doc.text(line);
+            const itemNameStr = `${item.name} (${item.variant})`;
+            doc.fontSize(7).font('Helvetica-Bold');
+            doc.text(itemNameStr, 12, doc.y);
+            
+            doc.font('Helvetica');
+            doc.text(`${item.qty}`, 115, doc.y - 9, { align: 'right', width: 20 });
+            doc.text(`₹${item.price}`, 140, doc.y - 9, { align: 'right', width: 25 });
+            doc.text(`₹${item.total}`, 175, doc.y - 9, { align: 'right', width: 25 });
+            doc.moveDown(0.4);
         });
 
-        doc.text('------------------------------------------------');
-        doc.font('Helvetica-Bold');
-        doc.text(`Subtotal: ₹${billData.subtotal}`, { align: 'right' });
-        doc.text(`Grand Total: ₹${billData.grandTotal}`, { align: 'right' });
-        doc.text('------------------------------------------------');
+        doc.text('----------------------------------------------------------');
 
-        doc.fontSize(8).font('Helvetica-Oblique').text('Thank You! Visit Again!', { align: 'center' });
+        // Totals Section
+        const rightAlignX = 145;
+        doc.font('Helvetica');
+        doc.text(`Subtotal:`, 80, doc.y, { continued: true });
+        doc.text(`₹${billData.subtotal.toFixed(2)}`, rightAlignX, doc.y, { align: 'right', width: 55 });
+
+        if (billData.discount > 0) {
+            doc.text(`Discount:`, 80, doc.y, { continued: true });
+            doc.text(`-₹${billData.discount.toFixed(2)}`, rightAlignX, doc.y, { align: 'right', width: 55 });
+        }
+
+        doc.moveDown(0.2);
+        doc.font('Helvetica-Bold').fontSize(9);
+        doc.text(`GRAND TOTAL:`, 60, doc.y, { continued: true });
+        doc.text(`₹${billData.grandTotal.toFixed(2)}`, rightAlignX - 10, doc.y, { align: 'right', width: 65 });
+        
+        doc.font('Helvetica').fontSize(7);
+        doc.text('----------------------------------------------------------');
+        doc.moveDown(0.3);
+
+        // Footer
+        doc.font('Helvetica-Bold').fontSize(8).text('Thank You! Please Visit Again!', { align: 'center' });
+        doc.font('Helvetica-Oblique').fontSize(6).fillColor('#666666');
         doc.text('Sukoon Ki Har Ghoont, Aapke Naam.', { align: 'center' });
 
         doc.end();
 
     } catch (error) {
-        res.status(500).send('Could not generate PDF Invoice.');
+        console.error('PDF Generation Error:', error);
+        res.status(500).send('Could not generate professional PDF Invoice.');
     }
 });
 
-// Fallback to Index.html for Single Page App
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ==========================================
-// SOCKET.IO REALTIME CONNECTIONS
-// ==========================================
 io.on('connection', (socket) => {
     console.log('⚡ Billing Terminal connected:', socket.id);
-
     socket.on('disconnect', () => {
         console.log('Terminal disconnected:', socket.id);
     });
 });
 
-// Start Server
 server.listen(PORT, () => {
-    console.log(`
-  ════════════════════════════════════════════════════════════════
-  ☕ LAUNG ELAICHI CAFE - POS & ACCOUNTING SYSTEM RUNNING
-  ════════════════════════════════════════════════════════════════
-  📍 Location: Bangla Chauraha, Beside Mahakal Kachori
-  🚀 Server URL: http://localhost:${PORT}
-  📄 Invoice PDF API: http://localhost:${PORT}/api/bills/pdf/LEC-DEMO
-  ════════════════════════════════════════════════════════════════
-  `);
+    console.log(`☕ LAUNG ELAICHI CAFE POS RUNNING ON PORT ${PORT}`);
 });
