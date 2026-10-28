@@ -1,6 +1,7 @@
 /**
- * LAUNG ELAICHI CAFE - COMPLETE POS & ACCOUNTING SERVER
+ * THE BANGLA LAUNG ELAICHI CAFE - COMPLETE POS & ACCOUNTING SERVER
  * Location: Bangla Chauraha, Beside Mahakal Kachori, Lucknow
+ * Contact: 9005041462
  * Tech Stack: Express, Socket.IO, Mongoose, PDFKit
  */
 
@@ -100,7 +101,7 @@ const MENU_DATA = [
 
 // Database Connection with graceful fallback
 mongoose.connect(MONGO_URI)
-    .then(() => console.log('✅ Connected to MongoDB (Laung Elaichi Database)'))
+    .then(() => console.log('✅ Connected to MongoDB (The Bangla Laung Elaichi Cafe Database)'))
     .catch((err) => console.log('⚠️ MongoDB Connection Note: Running in standalone memory mode until DB connects.', err.message));
 
 // ==========================================
@@ -121,7 +122,7 @@ app.post('/api/bills/create', async (req, res) => {
 
         const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
         const randomNum = Math.floor(1000 + Math.random() * 9000);
-        const invoiceNo = `LEC-${todayStr}-${randomNum}`;
+        const invoiceNo = `BLEC-${todayStr}-${randomNum}`;
 
         const newBillData = {
             invoiceNo,
@@ -197,7 +198,7 @@ app.get('/api/reports/summary', async (req, res) => {
     }
 });
 
-// Professional Thermal PDF Invoice Generator Route
+// Professional Structured Thermal PDF Invoice Generator Route
 app.get('/api/bills/pdf/:invoiceNo', async (req, res) => {
     try {
         const { invoiceNo } = req.params;
@@ -209,9 +210,10 @@ app.get('/api/bills/pdf/:invoiceNo', async (req, res) => {
 
         if (!billData) {
             billData = {
-                invoiceNo: invoiceNo || 'LEC-20261027-9999',
+                invoiceNo: invoiceNo || 'BLEC-20261028-9999',
                 createdAt: new Date(),
                 customerName: 'Walk-in Guest',
+                customerPhone: '9005041462',
                 paymentMethod: 'UPI',
                 items: [
                     { name: 'Special Chai', variant: 'Kullad', price: 20, qty: 2, total: 40 },
@@ -224,30 +226,31 @@ app.get('/api/bills/pdf/:invoiceNo', async (req, res) => {
             };
         }
 
-        const doc = new PDFDocument({ size: [226, 500], margin: 12 });
+        const doc = new PDFDocument({ size: [226, 520], margin: 12 });
 
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `inline; filename=Invoice_${billData.invoiceNo}.pdf`);
 
         doc.pipe(res);
 
-        // Header
-        doc.font('Helvetica-Bold').fontSize(13).text('LAUNG ELAICHI CAFE', { align: 'center' });
-        doc.font('Helvetica').fontSize(7).fillColor('#555555');
-        doc.text('Bangla Chauraha, Beside Mahakal Kachori', { align: 'center' });
-        doc.text('Lucknow, Uttar Pradesh', { align: 'center' });
-        doc.moveDown(0.5);
+        // --- HEADER ---
+        doc.font('Helvetica-Bold').fontSize(11).text('THE BANGLA LAUNG ELAICHI CAFE', { align: 'center' });
+        doc.font('Helvetica').fontSize(6.5).fillColor('#444444');
+        doc.text('Bangla Chauraha, Beside Mahakal Kachori, Lucknow', { align: 'center' });
+        doc.text('Helpline / Contact: 9005041462', { align: 'center' });
+        doc.moveDown(0.4);
 
-        // Invoice Meta
+        // --- INVOICE META & CONTACTS ---
         doc.fillColor('#000000').fontSize(7).font('Helvetica-Bold');
-        doc.text(`INVOICE: ${billData.invoiceNo}`);
+        doc.text(`INVOICE NO: ${billData.invoiceNo}`);
         doc.font('Helvetica');
         doc.text(`DATE: ${new Date(billData.createdAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}`);
         doc.text(`CUSTOMER: ${billData.customerName}`);
+        doc.text(`CUST PHONE: ${billData.customerPhone || 'N/A'}`);
         doc.text(`PAYMENT MODE: ${billData.paymentMethod}`);
         doc.text('----------------------------------------------------------');
 
-        // Table Headers
+        // --- TABLE HEADERS ---
         doc.font('Helvetica-Bold').fontSize(7);
         doc.text('ITEM / VARIANT', 12, doc.y, { continued: true });
         doc.text('QTY', 115, doc.y, { continued: true, align: 'right' });
@@ -256,7 +259,7 @@ app.get('/api/bills/pdf/:invoiceNo', async (req, res) => {
         
         doc.font('Helvetica').text('----------------------------------------------------------');
 
-        // Items Loop
+        // --- ITEMS LOOP ---
         billData.items.forEach(item => {
             const itemNameStr = `${item.name} (${item.variant})`;
             doc.fontSize(7).font('Helvetica-Bold');
@@ -271,7 +274,7 @@ app.get('/api/bills/pdf/:invoiceNo', async (req, res) => {
 
         doc.text('----------------------------------------------------------');
 
-        // Totals Section
+        // --- TOTALS SECTION ---
         const rightAlignX = 145;
         doc.font('Helvetica');
         doc.text(`Subtotal:`, 80, doc.y, { continued: true });
@@ -291,8 +294,8 @@ app.get('/api/bills/pdf/:invoiceNo', async (req, res) => {
         doc.text('----------------------------------------------------------');
         doc.moveDown(0.3);
 
-        // Footer
-        doc.font('Helvetica-Bold').fontSize(8).text('Thank You! Please Visit Again!', { align: 'center' });
+        // --- FOOTER ---
+        doc.font('Helvetica-Bold').fontSize(7.5).text('Thank You! Please Visit Again!', { align: 'center' });
         doc.font('Helvetica-Oblique').fontSize(6).fillColor('#666666');
         doc.text('Sukoon Ki Har Ghoont, Aapke Naam.', { align: 'center' });
 
@@ -316,5 +319,5 @@ io.on('connection', (socket) => {
 });
 
 server.listen(PORT, () => {
-    console.log(`☕ LAUNG ELAICHI CAFE POS RUNNING ON PORT ${PORT}`);
+    console.log(`☕ THE BANGLA LAUNG ELAICHI CAFE POS RUNNING ON PORT ${PORT}`);
 });
