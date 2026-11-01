@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laung Elaichi Cafe - POS & Accounting System</title>
+    <title>The Bangla Laung Elaichi Cafe - POS & Accounting System</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -52,10 +52,10 @@
                 </div>
                 <div>
                     <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
-                        Laung Elaichi Cafe
+                        The Bangla Laung Elaichi Cafe
                     </h1>
                     <p class="text-xs text-slate-400 flex items-center gap-1">
-                        <i class="fa-solid fa-location-dot text-amber-500"></i> Bangla Chauraha, Beside Mahakal Kachori, Lucknow
+                        <i class="fa-solid fa-location-dot text-amber-500"></i> Bangla Chauraha, Beside Mahakal Kachori, Lucknow | 📞 9005041462
                     </p>
                 </div>
             </div>
@@ -63,11 +63,11 @@
             <!-- Tab Navigation & Live Clock -->
             <div class="flex items-center gap-3">
                 <div class="bg-slate-800 p-1 rounded-xl flex gap-1 border border-slate-700">
-                    <button onclick="switchTab('pos')" id="tab-pos" class="px-4 py-2 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md">
-                        <i class="fa-solid fa-cash-register mr-1.5"></i> POS Billing
+                    <button onclick="switchMainTab('pos')" id="nav-tab-pos" class="px-4 py-2 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md">
+                        <i class="fa-solid fa-cash-register mr-1.5"></i> POS System
                     </button>
-                    <button onclick="switchTab('accounting')" id="tab-accounting" class="px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white">
-                        <i class="fa-solid fa-chart-pie mr-1.5"></i> Accountancy & Reports
+                    <button onclick="switchMainTab('accounting')" id="nav-tab-accounting" class="px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white">
+                        <i class="fa-solid fa-chart-pie mr-1.5"></i> Accountancy Ledger
                     </button>
                 </div>
                 <div id="live-clock" class="hidden md:block text-xs font-mono bg-slate-800/80 px-3 py-2 rounded-xl border border-slate-700 text-amber-400"></div>
@@ -76,91 +76,10 @@
     </header>
 
     <!-- Main Container -->
-    <main class="flex-grow max-w-7xl w-full mx-auto p-4 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 relative z-10 flex flex-col">
 
-        <!-- ================================= TAB 1: POS BILLING ================================= -->
-        <div id="view-pos" class="contents">
-            <!-- Left Panel: Menu Items by Code -->
-            <div class="lg:col-span-7 flex flex-col gap-4">
-                <div class="glass-card p-4 rounded-2xl flex flex-col sm:flex-row gap-3">
-                    <div class="relative flex-grow">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
-                        <input type="text" id="menu-search" oninput="filterMenu()" placeholder="Search items or type code (e.g., T10, MSV30, MKV55)..." class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-amber-500 text-white placeholder-slate-500">
-                    </div>
-                    <div class="flex gap-2 overflow-x-auto pb-1 sm:pb-0">
-                        <button onclick="filterCategory('all')" class="cat-btn px-3 py-2 rounded-xl text-xs font-semibold bg-amber-500 text-slate-950 shrink-0">All</button>
-                        <button onclick="filterCategory('tea')" class="cat-btn px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 shrink-0">Chai</button>
-                        <button onclick="filterCategory('coffee')" class="cat-btn px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 shrink-0">Coffee</button>
-                        <button onclick="filterCategory('bakery')" class="cat-btn px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 shrink-0">Bakery</button>
-                        <button onclick="filterCategory('momos')" class="cat-btn px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 shrink-0">Momos</button>
-                        <button onclick="filterCategory('masala')" class="cat-btn px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 shrink-0">Masala</button>
-                    </div>
-                </div>
-
-                <!-- Menu Grid -->
-                <div id="menu-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto max-h-[calc(100vh-250px)] pr-1">
-                    <!-- Dynamic Menu Items Injected via JS -->
-                </div>
-            </div>
-
-            <!-- Right Panel: Cart & Checkout -->
-            <div class="lg:col-span-5 flex flex-col gap-4">
-                <div class="glass-card p-5 rounded-2xl flex flex-col h-[calc(100vh-110px)] sticky top-20">
-                    <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-3">
-                        <h2 class="font-bold text-base flex items-center gap-2">
-                            <i class="fa-solid fa-receipt text-amber-500"></i> Current Bill Order
-                        </h2>
-                        <button onclick="clearCart()" class="text-xs text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 px-2.5 py-1 rounded-lg transition-colors">
-                            <i class="fa-solid fa-trash mr-1"></i> Clear Cart
-                        </button>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 mb-3">
-                        <input type="text" id="cust-name" placeholder="Customer Name" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
-                        <input type="text" id="cust-phone" placeholder="Phone Number" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
-                    </div>
-
-                    <div id="cart-items" class="flex-grow overflow-y-auto space-y-2 pr-1 mb-3">
-                        <div class="text-center text-slate-500 py-12 text-sm">
-                            <i class="fa-solid fa-basket-shopping text-3xl mb-2 block opacity-40"></i>
-                            Cart is empty. Click items or type codes to add.
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 space-y-1.5 mb-3 text-xs">
-                        <div class="flex justify-between text-slate-400">
-                            <span>Subtotal</span>
-                            <span id="bill-subtotal">₹0.00</span>
-                        </div>
-                        <div class="flex justify-between text-slate-400">
-                            <span>Taxes & Charges (0%)</span>
-                            <span>₹0.00</span>
-                        </div>
-                        <div class="flex justify-between text-slate-400">
-                            <span>Discount</span>
-                            <span>-₹0.00</span>
-                        </div>
-                        <div class="border-t border-slate-800 pt-1.5 flex justify-between font-bold text-sm text-amber-400">
-                            <span>Grand Total</span>
-                            <span id="bill-grand-total">₹0.00</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-2 mb-3">
-                        <button onclick="setPaymentMethod('UPI')" id="pay-upi" class="pay-btn py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition-all border border-amber-400">UPI</button>
-                        <button onclick="setPaymentMethod('CASH')" id="pay-cash" class="pay-btn py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 transition-all border border-slate-700">Cash</button>
-                        <button onclick="setPaymentMethod('CARD')" id="pay-card" class="pay-btn py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 transition-all border border-slate-700">Card</button>
-                    </div>
-
-                    <button onclick="checkoutOrder()" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold py-3 rounded-xl shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2 text-sm">
-                        <i class="fa-solid fa-print"></i> Complete Bill & Print Invoice
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ================================= TAB 2: ACCOUNTING & REPORTS ================================= -->
-        <div id="view-accounting" class="hidden col-span-12 flex flex-col gap-6">
+        <!-- ================================= ACCOUNTANCY TAB ================================= -->
+        <div id="view-accounting" class="hidden flex-col gap-6">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="glass-card p-5 rounded-2xl flex items-center justify-between">
                     <div>
@@ -207,6 +126,7 @@
                                 <th class="p-3">Invoice No</th>
                                 <th class="p-3">Date / Time</th>
                                 <th class="p-3">Customer</th>
+                                <th class="p-3">Phone</th>
                                 <th class="p-3">Items Ordered</th>
                                 <th class="p-3">Payment</th>
                                 <th class="p-3 text-right">Amount</th>
@@ -221,6 +141,159 @@
             </div>
         </div>
 
+        <!-- ================================= POS LAYERED WORKFLOW ================================= -->
+        <div id="view-pos-container" class="flex-grow flex flex-col">
+
+            <!-- LAYER 1: Customer Details & Animated Welcome Vibe -->
+            <div id="pos-step-1" class="flex-grow flex items-center justify-center py-12">
+                <div class="glass-card max-w-lg w-full p-8 rounded-3xl shadow-2xl border border-slate-700/80 text-center relative overflow-hidden">
+                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                    <div class="w-16 h-16 bg-gradient-to-tr from-amber-600 to-amber-400 text-slate-950 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl shadow-lg shadow-amber-500/20 floating-sticker">
+                        <i class="fa-solid fa-mug-hot"></i>
+                    </div>
+
+                    <h2 class="text-2xl font-black bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent mb-1">
+                        Welcome to Billing Terminal
+                    </h2>
+                    <p class="text-xs text-slate-400 mb-6">Enter customer credentials to initiate a new billing session.</p>
+
+                    <div class="space-y-4 text-left mb-6">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1.5"><i class="fa-solid fa-user text-amber-500 mr-1"></i> Customer Name</label>
+                            <input type="text" id="step1-name" placeholder="Enter guest or customer name..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1.5"><i class="fa-solid fa-phone text-amber-500 mr-1"></i> Customer Phone Number</label>
+                            <input type="tel" id="step1-phone" placeholder="Enter 10-digit mobile number..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500">
+                        </div>
+                    </div>
+
+                    <button onclick="proceedToCategoryStep()" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold py-3.5 rounded-xl shadow-lg shadow-amber-500/20 transition-all text-sm flex items-center justify-center gap-2">
+                        <span>Make Bill</span> <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- LAYER 2: Category Selector (Bright & Vibrant Buttons) -->
+            <div id="pos-step-2" class="hidden flex-grow flex-col justify-center items-center py-12">
+                <div class="max-w-3xl w-full text-center">
+                    <div class="flex justify-between items-center mb-6">
+                        <button onclick="backToStep1()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-xl transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-arrow-left"></i> Change Customer Info
+                        </button>
+                        <div id="active-customer-badge" class="text-xs font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-xl"></div>
+                    </div>
+
+                    <h2 class="text-2xl font-black text-white mb-2">Select Product Category</h2>
+                    <p class="text-xs text-slate-400 mb-8">Choose a category to open the item selection catalog.</p>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        <button onclick="selectCategoryAndProceed('all')" class="glass-card hover:bg-amber-500/20 border-slate-700 hover:border-amber-500 p-6 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all group">
+                            <span class="text-3xl group-hover:scale-110 transition-transform">🌟</span>
+                            <span class="font-extrabold text-sm text-white">All Products</span>
+                        </button>
+                        <button onclick="selectCategoryAndProceed('tea')" class="glass-card hover:bg-amber-500/20 border-slate-700 hover:border-amber-500 p-6 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all group">
+                            <span class="text-3xl group-hover:scale-110 transition-transform">☕</span>
+                            <span class="font-extrabold text-sm text-white">Chai</span>
+                        </button>
+                        <button onclick="selectCategoryAndProceed('momos')" class="glass-card hover:bg-amber-500/20 border-slate-700 hover:border-amber-500 p-6 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all group">
+                            <span class="text-3xl group-hover:scale-110 transition-transform">🥟</span>
+                            <span class="font-extrabold text-sm text-white">Momo</span>
+                        </button>
+                        <button onclick="selectCategoryAndProceed('coffee')" class="glass-card hover:bg-amber-500/20 border-slate-700 hover:border-amber-500 p-6 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all group">
+                            <span class="text-3xl group-hover:scale-110 transition-transform">🫖</span>
+                            <span class="font-extrabold text-sm text-white">Coffee</span>
+                        </button>
+                        <button onclick="selectCategoryAndProceed('bakery')" class="glass-card hover:bg-amber-500/20 border-slate-700 hover:border-amber-500 p-6 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all group">
+                            <span class="text-3xl group-hover:scale-110 transition-transform">🧈</span>
+                            <span class="font-extrabold text-sm text-white">Bakery</span>
+                        </button>
+                        <button onclick="selectCategoryAndProceed('masala')" class="glass-card hover:bg-amber-500/20 border-slate-700 hover:border-amber-500 p-6 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all group">
+                            <span class="text-3xl group-hover:scale-110 transition-transform">📦</span>
+                            <span class="font-extrabold text-sm text-white">Masala</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LAYER 3: Cafe Product Listing & POS Billing Terminal -->
+            <div id="pos-step-3" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Left Panel: Menu Items -->
+                <div class="lg:col-span-7 flex flex-col gap-4">
+                    <div class="glass-card p-4 rounded-2xl flex items-center justify-between gap-3">
+                        <button onclick="backToStep2()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-xl transition-all flex items-center gap-1.5 shrink-0">
+                            <i class="fa-solid fa-arrow-left"></i> Categories
+                        </button>
+                        <div class="relative flex-grow">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+                            <input type="text" id="menu-search" oninput="filterMenu()" placeholder="Search items or type code (e.g., T10, MSV30)..." class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-amber-500 text-white placeholder-slate-500">
+                        </div>
+                    </div>
+
+                    <!-- Menu Grid -->
+                    <div id="menu-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto max-h-[calc(100vh-220px)] pr-1">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+
+                <!-- Right Panel: Cart & Checkout -->
+                <div class="lg:col-span-5 flex flex-col gap-4">
+                    <div class="glass-card p-5 rounded-2xl flex flex-col h-[calc(100vh-100px)] sticky top-20">
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-3">
+                            <div>
+                                <h2 class="font-bold text-base flex items-center gap-2">
+                                    <i class="fa-solid fa-receipt text-amber-500"></i> Current Bill Order
+                                </h2>
+                                <p id="cart-cust-summary" class="text-[11px] text-amber-400 mt-0.5"></p>
+                            </div>
+                            <button onclick="clearCart()" class="text-xs text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 px-2.5 py-1 rounded-lg transition-colors">
+                                <i class="fa-solid fa-trash mr-1"></i> Clear
+                            </button>
+                        </div>
+
+                        <div id="cart-items" class="flex-grow overflow-y-auto space-y-2 pr-1 mb-3">
+                            <div class="text-center text-slate-500 py-12 text-sm">
+                                <i class="fa-solid fa-basket-shopping text-3xl mb-2 block opacity-40"></i>
+                                Cart is empty. Click items or type codes to add.
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 space-y-1.5 mb-3 text-xs">
+                            <div class="flex justify-between text-slate-400">
+                                <span>Subtotal</span>
+                                <span id="bill-subtotal">₹0.00</span>
+                            </div>
+                            <div class="flex justify-between text-slate-400">
+                                <span>Taxes & Charges (0%)</span>
+                                <span>₹0.00</span>
+                            </div>
+                            <div class="flex justify-between text-slate-400">
+                                <span>Discount</span>
+                                <span>-₹0.00</span>
+                            </div>
+                            <div class="border-t border-slate-800 pt-1.5 flex justify-between font-bold text-sm text-amber-400">
+                                <span>Grand Total</span>
+                                <span id="bill-grand-total">₹0.00</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2 mb-3">
+                            <button onclick="setPaymentMethod('UPI')" id="pay-upi" class="pay-btn py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition-all border border-amber-400">UPI</button>
+                            <button onclick="setPaymentMethod('CASH')" id="pay-cash" class="pay-btn py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 transition-all border border-slate-700">Cash</button>
+                            <button onclick="setPaymentMethod('CARD')" id="pay-card" class="pay-btn py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 transition-all border border-slate-700">Card</button>
+                        </div>
+
+                        <button onclick="checkoutOrder()" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold py-3 rounded-xl shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2 text-sm">
+                            <i class="fa-solid fa-print"></i> Complete Bill & Print Invoice
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
     </main>
 
     <!-- Success / Invoice Modal -->
@@ -231,7 +304,7 @@
                     <i class="fa-solid fa-check"></i>
                 </div>
                 <h3 class="text-lg font-bold text-white">Order Completed Successfully!</h3>
-                <p class="text-xs text-slate-400" id="modal-inv-number">Invoice #LEC-20261027-0001</p>
+                <p class="text-xs text-slate-400" id="modal-inv-number">Invoice #BLEC-20261028-0001</p>
             </div>
             
             <div class="bg-slate-950 p-4 rounded-xl font-mono text-xs text-slate-300 space-y-1 mb-4 max-h-60 overflow-y-auto border border-slate-800" id="modal-receipt-preview">
@@ -246,8 +319,8 @@
                     <i class="fa-solid fa-print"></i> Thermal Print
                 </button>
             </div>
-            <button onclick="closeModal()" class="w-full mt-3 text-xs text-slate-500 hover:text-slate-300 text-center">
-                Close & Return to POS
+            <button onclick="closeModalAndReset()" class="w-full mt-3 text-xs text-slate-500 hover:text-slate-300 text-center">
+                Finish & Start New Bill
             </button>
         </div>
     </div>
@@ -292,11 +365,11 @@
 
         let cart = [];
         let selectedPayment = 'UPI';
-        let currentFilter = 'all';
+        let currentCategoryFilter = 'all';
         let activeInvoiceNo = '';
+        let currentCustomer = { name: 'Walk-in Guest', phone: 'N/A' };
 
         document.addEventListener('DOMContentLoaded', () => {
-            renderMenu(menuItems);
             updateClock();
             setInterval(updateClock, 1000);
             loadAccountingReports();
@@ -311,24 +384,70 @@
             document.getElementById('live-clock').innerText = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
         }
 
-        function switchTab(tab) {
+        // Switch Top Level Tabs (POS vs Accounting)
+        function switchMainTab(tab) {
             if (tab === 'pos') {
-                document.getElementById('view-pos').classList.remove('hidden');
-                document.getElementById('view-pos').classList.add('contents');
+                document.getElementById('view-pos-container').classList.remove('hidden');
                 document.getElementById('view-accounting').classList.add('hidden');
-                document.getElementById('tab-pos').className = "px-4 py-2 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md";
-                document.getElementById('tab-accounting').className = "px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white";
+                document.getElementById('nav-tab-pos').className = "px-4 py-2 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md";
+                document.getElementById('nav-tab-accounting').className = "px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white";
             } else {
-                document.getElementById('view-pos').classList.remove('contents');
-                document.getElementById('view-pos').classList.add('hidden');
+                document.getElementById('view-pos-container').classList.add('hidden');
                 document.getElementById('view-accounting').classList.remove('hidden');
-                document.getElementById('tab-accounting').className = "px-4 py-2 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md";
-                document.getElementById('tab-pos').className = "px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white";
+                document.getElementById('view-accounting').classList.add('flex');
+                document.getElementById('nav-tab-accounting').className = "px-4 py-2 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md";
+                document.getElementById('nav-tab-pos').className = "px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white";
                 loadAccountingReports();
             }
         }
 
-        function renderMenu(items) {
+        // --- STEP FLOW NAVIGATION ---
+        function proceedToCategoryStep() {
+            const nameInput = document.getElementById('step1-name').value.trim();
+            const phoneInput = document.getElementById('step1-phone').value.trim();
+
+            currentCustomer.name = nameInput || 'Walk-in Guest';
+            currentCustomer.phone = phoneInput || 'N/A';
+
+            document.getElementById('active-customer-badge').innerText = `Customer: ${currentCustomer.name} (${currentCustomer.phone})`;
+            document.getElementById('cart-cust-summary').innerText = `Customer: ${currentCustomer.name} | Ph: ${currentCustomer.phone}`;
+
+            document.getElementById('pos-step-1').classList.add('hidden');
+            document.getElementById('pos-step-2').classList.remove('hidden');
+            document.getElementById('pos-step-2').classList.add('flex');
+        }
+
+        function backToStep1() {
+            document.getElementById('pos-step-2').classList.add('hidden');
+            document.getElementById('pos-step-2').classList.remove('flex');
+            document.getElementById('pos-step-1').classList.remove('hidden');
+        }
+
+        function selectCategoryAndProceed(category) {
+            currentCategoryFilter = category;
+            renderMenuForCategory(category);
+
+            document.getElementById('pos-step-2').classList.add('hidden');
+            document.getElementById('pos-step-2').classList.remove('flex');
+            document.getElementById('pos-step-3').classList.remove('hidden');
+        }
+
+        function backToStep2() {
+            document.getElementById('pos-step-3').classList.add('hidden');
+            document.getElementById('pos-step-2').classList.remove('hidden');
+            document.getElementById('pos-step-2').classList.add('flex');
+        }
+
+        // --- MENU RENDERING ---
+        function renderMenuForCategory(cat) {
+            let itemsToDisplay = menuItems;
+            if (cat !== 'all') {
+                itemsToDisplay = menuItems.filter(i => i.category === cat);
+            }
+            renderMenuGrid(itemsToDisplay);
+        }
+
+        function renderMenuGrid(items) {
             const grid = document.getElementById('menu-grid');
             grid.innerHTML = '';
             items.forEach(item => {
@@ -355,26 +474,17 @@
             });
         }
 
-        function filterCategory(cat) {
-            currentFilter = cat;
-            document.querySelectorAll('.cat-btn').forEach(btn => {
-                btn.className = "cat-btn px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 shrink-0";
-            });
-            event.target.className = "cat-btn px-3 py-2 rounded-xl text-xs font-semibold bg-amber-500 text-slate-950 shrink-0";
-
-            if (cat === 'all') {
-                renderMenu(menuItems);
-            } else {
-                renderMenu(menuItems.filter(i => i.category === cat));
-            }
-        }
-
         function filterMenu() {
             const query = document.getElementById('menu-search').value.toLowerCase();
-            const filtered = menuItems.filter(i => i.name.toLowerCase().includes(query) || i.code.toLowerCase().includes(query));
-            renderMenu(filtered);
+            let baseList = menuItems;
+            if (currentCategoryFilter !== 'all') {
+                baseList = menuItems.filter(i => i.category === currentCategoryFilter);
+            }
+            const filtered = baseList.filter(i => i.name.toLowerCase().includes(query) || i.code.toLowerCase().includes(query));
+            renderMenuGrid(filtered);
         }
 
+        // --- CART MANAGEMENT ---
         function addToCart(code) {
             const item = menuItems.find(i => i.code === code);
             if (!item) return;
@@ -467,19 +577,18 @@
             });
         }
 
+        // --- CHECKOUT & BILL CREATION ---
         async function checkoutOrder() {
             if (cart.length === 0) {
                 alert('Please add items to cart before checkout.');
                 return;
             }
 
-            const customerName = document.getElementById('cust-name').value || 'Walk-in Guest';
-            const customerPhone = document.getElementById('cust-phone').value || 'N/A';
             const subtotal = cart.reduce((acc, i) => acc + i.total, 0);
 
             const orderPayload = {
-                customerName,
-                customerPhone,
+                customerName: currentCustomer.name,
+                customerPhone: currentCustomer.phone,
                 paymentMethod: selectedPayment,
                 items: cart,
                 subtotal,
@@ -499,25 +608,20 @@
                 if (data.success) {
                     activeInvoiceNo = data.bill.invoiceNo;
                     showInvoiceModal(data.bill);
-                    cart = [];
-                    renderCart();
-                    document.getElementById('cust-name').value = '';
-                    document.getElementById('cust-phone').value = '';
                 } else {
                     alert('Error saving bill: ' + data.message);
                 }
             } catch (err) {
-                activeInvoiceNo = 'LEC-' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '-' + Math.floor(1000 + Math.random() * 9000);
+                activeInvoiceNo = 'BLEC-' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '-' + Math.floor(1000 + Math.random() * 9000);
                 showInvoiceModal({
                     invoiceNo: activeInvoiceNo,
                     createdAt: new Date(),
-                    customerName,
+                    customerName: currentCustomer.name,
+                    customerPhone: currentCustomer.phone,
                     paymentMethod: selectedPayment,
                     items: [...cart],
                     grandTotal: subtotal
                 });
-                cart = [];
-                renderCart();
             }
         }
 
@@ -525,12 +629,14 @@
             document.getElementById('modal-inv-number').innerText = `Invoice #${bill.invoiceNo}`;
             
             let receiptHTML = `
-                <div class="text-center font-bold">LAUNG ELAICHI CAFE</div>
+                <div class="text-center font-bold">THE BANGLA LAUNG ELAICHI CAFE</div>
                 <div class="text-[9px] text-center text-slate-400">Bangla Chauraha, Beside Mahakal Kachori, Lucknow</div>
+                <div class="text-[9px] text-center text-amber-400">Helpline: 9005041462</div>
                 <div>----------------------------------------</div>
                 <div>Inv: ${bill.invoiceNo}</div>
                 <div>Date: ${new Date(bill.createdAt).toLocaleString()}</div>
                 <div>Customer: ${bill.customerName}</div>
+                <div>Phone: ${bill.customerPhone}</div>
                 <div>Payment: ${bill.paymentMethod}</div>
                 <div>----------------------------------------</div>
                 <div>Item            Qty   Price   Total</div>
@@ -564,10 +670,17 @@
             location.reload();
         }
 
-        function closeModal() {
+        function closeModalAndReset() {
             document.getElementById('invoice-modal').classList.add('hidden');
+            cart = [];
+            renderCart();
+            document.getElementById('step1-name').value = '';
+            document.getElementById('step1-phone').value = '';
+            document.getElementById('pos-step-3').classList.add('hidden');
+            document.getElementById('pos-step-1').classList.remove('hidden');
         }
 
+        // --- ACCOUNTANCY REPORTS ---
         async function loadAccountingReports() {
             try {
                 const res = await fetch('/api/reports/summary');
@@ -585,7 +698,7 @@
                     tbody.innerHTML = '';
 
                     if (data.recentBills.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-500">No bill records found yet.</td></tr>`;
+                        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-500">No bill records found yet.</td></tr>`;
                         return;
                     }
 
@@ -596,6 +709,7 @@
                             <td class="p-3 font-mono font-bold text-amber-400">${bill.invoiceNo}</td>
                             <td class="p-3 text-slate-400">${new Date(bill.createdAt).toLocaleTimeString()}</td>
                             <td class="p-3 font-semibold text-white">${bill.customerName}</td>
+                            <td class="p-3 text-slate-300">${bill.customerPhone || 'N/A'}</td>
                             <td class="p-3 text-slate-300">${bill.items.map(i => `${i.name} (${i.qty})`).join(', ')}</td>
                             <td class="p-3"><span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">${bill.paymentMethod}</span></td>
                             <td class="p-3 text-right font-black text-amber-400">₹${bill.grandTotal}</td>
