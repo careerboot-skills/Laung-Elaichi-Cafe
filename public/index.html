@@ -773,7 +773,7 @@
             document.getElementById('pos-step-1').classList.remove('hidden');
         }
 
-        // --- ACCOUNTANCY REPORTS & EXCEL EXPORT ---
+        // --- ACCOUNTANCY REPORTS & STYLIZED EXCEL EXPORT CHART ---
         async function loadAccountingReports() {
             try {
                 const res = await fetch('/api/reports/summary');
@@ -827,22 +827,75 @@
                 return;
             }
 
-            let csvContent = "data:text/csv;charset=utf-8,Invoice No,Date,Customer Name,Phone,Payment Method,Subtotal,Grand Total\n";
+            let html = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                <head>
+                    <meta charset="utf-8">
+                    <style>
+                        table { border-collapse: collapse; width: 100%; font-family: 'Plus Jakarta Sans', Arial, sans-serif; }
+                        th { background-color: #d97706; color: #ffffff; font-weight: bold; text-align: center; padding: 10px; border: 1px solid #b45309; }
+                        td { padding: 8px; border: 1px solid #cbd5e1; text-align: left; font-size: 11pt; }
+                        .title { font-size: 16pt; font-weight: bold; color: #78350f; text-align: center; margin-bottom: 5px; }
+                        .subtitle { font-size: 10pt; color: #64748b; text-align: center; margin-bottom: 20px; }
+                        .amount { text-align: right; font-weight: bold; color: #b45309; }
+                    </style>
+                </head>
+                <body>
+                    <div class="title">THE BANGLA LAUNG ELAICHI CAFE - ACCOUNTANCY LEDGER</div>
+                    <div class="subtitle">Generated on: ${new Date().toLocaleString()} | Bangla Chauraha, Lucknow</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Invoice No</th>
+                                <th>Date / Time</th>
+                                <th>Customer Name</th>
+                                <th>Phone</th>
+                                <th>Payment Method</th>
+                                <th>Subtotal (₹)</th>
+                                <th>Grand Total (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            let totalRev = 0;
             accountancyBills.forEach(b => {
-                const row = [b.invoiceNo, `"${new Date(b.createdAt).toLocaleString()}"`, `"${b.customerName}"`, b.customerPhone, b.paymentMethod, b.subtotal, b.grandTotal];
-                csvContent += row.join(",") + "\n";
+                totalRev += b.grandTotal;
+                html += `
+                    <tr>
+                        <td style="font-weight: bold; color: #b45309;">${b.invoiceNo}</td>
+                        <td>${new Date(b.createdAt).toLocaleString()}</td>
+                        <td>${b.customerName}</td>
+                        <td>${b.customerPhone || 'N/A'}</td>
+                        <td style="text-align: center; font-weight: bold;">${b.paymentMethod}</td>
+                        <td class="amount">₹${b.subtotal.toFixed(2)}</td>
+                        <td class="amount">₹${b.grandTotal.toFixed(2)}</td>
+                    </tr>
+                `;
             });
 
-            const encodedUri = encodeURI(csvContent);
+            html += `
+                        <tr style="background-color: #fef3c7; font-weight: bold;">
+                            <td colspan="6" style="text-align: right; padding: 10px;">TOTAL REVENUE:</td>
+                            <td class="amount" style="font-size: 12pt;">₹${totalRev.toFixed(2)}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+            const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `Accountancy_Ledger_${new Date().toISOString().slice(0,10)}.csv`);
+            link.href = url;
+            link.download = `Accountancy_Ledger_Chart_${new Date().toISOString().slice(0, 10)}.xls`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
 
-        // --- INVENTORY & SOH MANAGEMENT ---
+        // --- INVENTORY & SOH MANAGEMENT & STYLIZED EXCEL EXPORT ---
         function renderInventoryTable() {
             const tbody = document.getElementById('inventory-table-body');
             tbody.innerHTML = '';
@@ -935,16 +988,64 @@
                 return;
             }
 
-            let csvContent = "data:text/csv;charset=utf-8,Item Code,Item Name,Variant,Category,Unit Price,Current Stock (SOH)\n";
+            let html = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                <head>
+                    <meta charset="utf-8">
+                    <style>
+                        table { border-collapse: collapse; width: 100%; font-family: 'Plus Jakarta Sans', Arial, sans-serif; }
+                        th { background-color: #047857; color: #ffffff; font-weight: bold; text-align: center; padding: 10px; border: 1px solid #065f46; }
+                        td { padding: 8px; border: 1px solid #cbd5e1; text-align: left; font-size: 11pt; }
+                        .title { font-size: 16pt; font-weight: bold; color: #065f46; text-align: center; margin-bottom: 5px; }
+                        .subtitle { font-size: 10pt; color: #64748b; text-align: center; margin-bottom: 20px; }
+                        .number { text-align: right; }
+                        .center { text-align: center; font-weight: bold; }
+                    </style>
+                </head>
+                <body>
+                    <div class="title">THE BANGLA LAUNG ELAICHI CAFE - STOCK ON HAND (SOH) REPORT</div>
+                    <div class="subtitle">Generated on: ${new Date().toLocaleString()} | Bangla Chauraha, Lucknow</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Item Code</th>
+                                <th>Item Name</th>
+                                <th>Variant</th>
+                                <th>Category</th>
+                                <th>Unit Price (₹)</th>
+                                <th>Current Stock (SOH)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
             inventoryList.forEach(i => {
-                const row = [i.code, `"${i.name}"`, `"${i.variant}"`, i.category, i.unitPrice ?? i.price, i.stock];
-                csvContent += row.join(",") + "\n";
+                const price = i.unitPrice ?? i.price;
+                const lowStockStyle = i.stock < 10 ? 'color: #dc2626; font-weight: bold;' : 'color: #047857; font-weight: bold;';
+                html += `
+                    <tr>
+                        <td style="font-weight: bold; color: #065f46;">${i.code}</td>
+                        <td>${i.name}</td>
+                        <td>${i.variant}</td>
+                        <td style="text-transform: uppercase;">${i.category}</td>
+                        <td class="number">₹${price.toFixed(2)}</td>
+                        <td class="center" style="${lowStockStyle}">${i.stock} Units</td>
+                    </tr>
+                `;
             });
 
-            const encodedUri = encodeURI(csvContent);
+            html += `
+                        </tbody>
+                    </table>
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+            const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `Stock_On_Hand_SOH_${new Date().toISOString().slice(0,10)}.csv`);
+            link.href = url;
+            link.download = `Stock_On_Hand_Report_${new Date().toISOString().slice(0, 10)}.xls`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
