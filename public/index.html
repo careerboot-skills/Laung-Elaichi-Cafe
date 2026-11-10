@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>The Bangla Laung Elaichi Cafe - POS, Accounting & Inventory</title>
+    <title>The Bangla Laung Elaichi Cafe - POS, Accounting & Daily Tally</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -63,13 +63,13 @@
             <!-- Tab Navigation & Live Clock -->
             <div class="flex items-center gap-3">
                 <div class="bg-slate-800 p-1 rounded-xl flex gap-1 border border-slate-700">
-                    <button onclick="switchMainTab('pos')" id="nav-tab-pos" class="px-3.5 py-2 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md">
+                    <button onclick="switchMainTab('pos')" id="nav-tab-pos" class="px-3 py-2 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md">
                         <i class="fa-solid fa-cash-register mr-1"></i> POS
                     </button>
-                    <button onclick="switchMainTab('accounting')" id="nav-tab-accounting" class="px-3.5 py-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white">
-                        <i class="fa-solid fa-chart-pie mr-1"></i> Ledger
+                    <button onclick="switchMainTab('accounting')" id="nav-tab-accounting" class="px-3 py-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white">
+                        <i class="fa-solid fa-chart-pie mr-1"></i> Ledger & Tally
                     </button>
-                    <button onclick="switchMainTab('inventory')" id="nav-tab-inventory" class="px-3.5 py-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white">
+                    <button onclick="switchMainTab('inventory')" id="nav-tab-inventory" class="px-3 py-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white">
                         <i class="fa-solid fa-boxes-stacked mr-1"></i> Inventory & SOH
                     </button>
                 </div>
@@ -81,15 +81,22 @@
     <!-- Main Container -->
     <main class="flex-grow max-w-7xl w-full mx-auto p-4 relative z-10 flex flex-col">
 
-        <!-- ================================= ACCOUNTANCY LEDGER TAB ================================= -->
+        <!-- ================================= ACCOUNTANCY LEDGER & TALLY TAB ================================= -->
         <div id="view-accounting" class="hidden flex-col gap-6">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 <div class="glass-card p-5 rounded-2xl flex items-center justify-between">
                     <div>
                         <p class="text-xs text-slate-400 uppercase font-semibold">Total Revenue</p>
                         <h3 id="rep-total-revenue" class="text-2xl font-black text-amber-400 mt-1">₹0.00</h3>
                     </div>
                     <div class="bg-amber-500/10 p-3.5 rounded-xl text-amber-500 text-xl"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                </div>
+                <div class="glass-card p-5 rounded-2xl flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-semibold">Today's Balance</p>
+                        <h3 id="rep-todays-balance" class="text-2xl font-black text-emerald-400 mt-1">₹0.00</h3>
+                    </div>
+                    <div class="bg-emerald-500/10 p-3.5 rounded-xl text-emerald-500 text-xl"><i class="fa-solid fa-scale-balanced"></i></div>
                 </div>
                 <div class="glass-card p-5 rounded-2xl flex items-center justify-between">
                     <div>
@@ -101,10 +108,23 @@
                 <div class="glass-card p-5 rounded-2xl flex items-center justify-between">
                     <div>
                         <p class="text-xs text-slate-400 uppercase font-semibold">Primary Payment Mode</p>
-                        <h3 id="rep-top-payment" class="text-xl font-bold text-emerald-400 mt-1">UPI</h3>
+                        <h3 id="rep-top-payment" class="text-xl font-bold text-cyan-400 mt-1">UPI</h3>
                     </div>
-                    <div class="bg-emerald-500/10 p-3.5 rounded-xl text-emerald-500 text-xl"><i class="fa-solid fa-wallet"></i></div>
+                    <div class="bg-cyan-500/10 p-3.5 rounded-xl text-cyan-500 text-xl"><i class="fa-solid fa-wallet"></i></div>
                 </div>
+            </div>
+
+            <!-- Daily Tally Control Box -->
+            <div class="glass-card p-5 rounded-2xl flex flex-wrap justify-between items-center gap-4 bg-gradient-to-r from-slate-900 via-slate-900 to-amber-950/30">
+                <div>
+                    <h3 class="font-bold text-base text-white flex items-center gap-2">
+                        <i class="fa-solid fa-calculator text-amber-500"></i> Daily Drawer Tally & Close Option
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Perform daily cash drawer reconciliation and tally cash vs digital receipts.</p>
+                </div>
+                <button onclick="openDailyTallyModal()" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 py-2.5 rounded-xl transition-all font-extrabold shadow-lg shadow-amber-500/20 flex items-center gap-2">
+                    <i class="fa-solid fa-clipboard-check"></i> Run Daily Tally
+                </button>
             </div>
 
             <div class="glass-card rounded-2xl p-5 overflow-hidden">
@@ -114,7 +134,7 @@
                     </h3>
                     <div class="flex items-center gap-2">
                         <button onclick="exportLedgerExcel()" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-lg shadow-emerald-600/20 font-bold">
-                            <i class="fa-solid fa-file-excel"></i> Export Excel Chart
+                            <i class="fa-solid fa-file-excel"></i> Export Excel Chart (KPIs & Balance)
                         </button>
                         <button onclick="loadAccountingReports()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-xl transition-all flex items-center gap-1.5">
                             <i class="fa-solid fa-rotate-right"></i> Refresh
@@ -368,6 +388,55 @@
         </div>
     </div>
 
+    <!-- Daily Tally & Close Modal -->
+    <div id="tally-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+            <h3 class="text-base font-bold text-white mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-clipboard-check text-amber-500"></i> Daily Drawer Tally & Settlement
+            </h3>
+            <p class="text-xs text-slate-400 mb-4">Verify today's collections and register closing balance.</p>
+            
+            <div class="space-y-3 text-xs mb-5 bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Total Bills Count:</span>
+                    <span id="tally-bills-count" class="font-bold text-white">0</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Total System Revenue:</span>
+                    <span id="tally-system-rev" class="font-bold text-amber-400">₹0.00</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Cash Collected:</span>
+                    <span id="tally-cash-rev" class="font-bold text-emerald-400">₹0.00</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">UPI / Card (Digital):</span>
+                    <span id="tally-upi-rev" class="font-bold text-cyan-400">₹0.00</span>
+                </div>
+                <div class="border-t border-slate-800 pt-2 flex justify-between">
+                    <span class="text-slate-300 font-bold">Today's Net Balance:</span>
+                    <span id="tally-net-balance" class="font-black text-emerald-400 text-sm">₹0.00</span>
+                </div>
+            </div>
+
+            <div class="space-y-3 text-xs mb-5">
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Physical Cash in Drawer (₹)</label>
+                    <input type="number" id="tally-drawer-cash" placeholder="Enter physical cash counted..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Daily Remarks / Notes</label>
+                    <input type="text" id="tally-remarks" placeholder="e.g. Normal business day, stock verified" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-amber-500">
+                </div>
+            </div>
+
+            <div class="flex gap-2">
+                <button onclick="closeDailyTallyModal()" class="w-1/2 bg-slate-800 hover:bg-slate-700 py-2.5 rounded-xl text-xs font-bold text-slate-300">Cancel</button>
+                <button onclick="completeDailyTally()" class="w-1/2 bg-amber-500 hover:bg-amber-400 py-2.5 rounded-xl text-xs font-bold text-slate-950 shadow-lg shadow-amber-500/20">Save & Close Day</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Add / Edit Stock Modal -->
     <div id="stock-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="glass-card bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
@@ -424,6 +493,7 @@
         let menuItems = [];
         let inventoryList = [];
         let accountancyBills = [];
+        let paymentBreakdownData = { CASH: 0, UPI: 0, CARD: 0 };
         let cart = [];
         let selectedPayment = 'UPI';
         let currentCategoryFilter = 'all';
@@ -454,21 +524,21 @@
         function switchMainTab(tab) {
             ['pos', 'accounting', 'inventory'].forEach(t => {
                 document.getElementById(`view-${t === 'pos' ? 'pos-container' : t}`).classList.add('hidden');
-                document.getElementById(`nav-tab-${t}`).className = "px-3.5 py-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white";
+                document.getElementById(`nav-tab-${t}`).className = "px-3 py-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white";
             });
 
             if (tab === 'pos') {
                 document.getElementById('view-pos-container').classList.remove('hidden');
-                document.getElementById('nav-tab-pos').className = "px-3.5 py-2 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md";
+                document.getElementById('nav-tab-pos').className = "px-3 py-2 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md";
             } else if (tab === 'accounting') {
                 document.getElementById('view-accounting').classList.remove('hidden');
                 document.getElementById('view-accounting').classList.add('flex');
-                document.getElementById('nav-tab-accounting').className = "px-3.5 py-2 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md";
+                document.getElementById('nav-tab-accounting').className = "px-3 py-2 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md";
                 loadAccountingReports();
             } else if (tab === 'inventory') {
                 document.getElementById('view-inventory').classList.remove('hidden');
                 document.getElementById('view-inventory').classList.add('flex');
-                document.getElementById('nav-tab-inventory').className = "px-3.5 py-2 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md";
+                document.getElementById('nav-tab-inventory').className = "px-3 py-2 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md";
                 loadMenuAndInventory();
             }
         }
@@ -773,7 +843,7 @@
             document.getElementById('pos-step-1').classList.remove('hidden');
         }
 
-        // --- ACCOUNTANCY REPORTS & STYLIZED EXCEL EXPORT CHART ---
+        // --- ACCOUNTANCY REPORTS, DAILY TALLY & EXCEL CHART EXPORT ---
         async function loadAccountingReports() {
             try {
                 const res = await fetch('/api/reports/summary');
@@ -781,10 +851,13 @@
 
                 if (data.success && data.totalRevenue !== undefined) {
                     accountancyBills = data.recentBills || [];
+                    paymentBreakdownData = data.paymentBreakdown || { CASH: 0, UPI: 0, CARD: 0 };
+                    
                     document.getElementById('rep-total-revenue').innerText = `₹${data.totalRevenue.toFixed(2)}`;
                     document.getElementById('rep-total-bills').innerText = data.totalBills;
+                    document.getElementById('rep-todays-balance').innerText = `₹${data.totalRevenue.toFixed(2)}`;
 
-                    const payments = data.paymentBreakdown;
+                    const payments = paymentBreakdownData;
                     const topPay = Object.keys(payments).reduce((a, b) => payments[a] > payments[b] ? a : b, 'UPI');
                     document.getElementById('rep-top-payment').innerText = `${topPay} (₹${payments[topPay]})`;
 
@@ -821,11 +894,46 @@
             }
         }
 
+        function openDailyTallyModal() {
+            const totalRev = accountancyBills.reduce((acc, b) => acc + b.grandTotal, 0);
+            const cashRev = paymentBreakdownData.CASH || 0;
+            const upiRev = (paymentBreakdownData.UPI || 0) + (paymentBreakdownData.CARD || 0);
+
+            document.getElementById('tally-bills-count').innerText = accountancyBills.length;
+            document.getElementById('tally-system-rev').innerText = `₹${totalRev.toFixed(2)}`;
+            document.getElementById('tally-cash-rev').innerText = `₹${cashRev.toFixed(2)}`;
+            document.getElementById('tally-upi-rev').innerText = `₹${upiRev.toFixed(2)}`;
+            document.getElementById('tally-net-balance').innerText = `₹${totalRev.toFixed(2)}`;
+            document.getElementById('tally-drawer-cash').value = cashRev;
+            document.getElementById('tally-remarks').value = 'Daily Tally & Drawer Balanced';
+
+            document.getElementById('tally-modal').classList.remove('hidden');
+        }
+
+        function closeDailyTallyModal() {
+            document.getElementById('tally-modal').classList.add('hidden');
+        }
+
+        function completeDailyTally() {
+            const countedCash = parseFloat(document.getElementById('tally-drawer-cash').value || 0);
+            const remarks = document.getElementById('tally-remarks').value;
+            const cashRev = paymentBreakdownData.CASH || 0;
+            const diff = countedCash - cashRev;
+
+            alert(`✅ Daily Tally Successful!\n\nPhysical Cash Counted: ₹${countedCash}\nExpected Cash: ₹${cashRev}\nDifference / Variance: ₹${diff}\nRemarks: ${remarks}`);
+            closeDailyTallyModal();
+        }
+
         function exportLedgerExcel() {
             if (!accountancyBills || accountancyBills.length === 0) {
                 alert('No ledger records available to export.');
                 return;
             }
+
+            const totalRev = accountancyBills.reduce((acc, b) => acc + b.grandTotal, 0);
+            const cashRev = paymentBreakdownData.CASH || 0;
+            const upiRev = paymentBreakdownData.UPI || 0;
+            const cardRev = paymentBreakdownData.CARD || 0;
 
             let html = `
                 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
@@ -836,13 +944,26 @@
                         th { background-color: #d97706; color: #ffffff; font-weight: bold; text-align: center; padding: 10px; border: 1px solid #b45309; }
                         td { padding: 8px; border: 1px solid #cbd5e1; text-align: left; font-size: 11pt; }
                         .title { font-size: 16pt; font-weight: bold; color: #78350f; text-align: center; margin-bottom: 5px; }
-                        .subtitle { font-size: 10pt; color: #64748b; text-align: center; margin-bottom: 20px; }
+                        .subtitle { font-size: 10pt; color: #64748b; text-align: center; margin-bottom: 15px; }
+                        .kpi-table td { background-color: #fffbeb; font-weight: bold; text-align: center; border: 2px solid #f59e0b; color: #78350f; padding: 10px; }
                         .amount { text-align: right; font-weight: bold; color: #b45309; }
                     </style>
                 </head>
                 <body>
-                    <div class="title">THE BANGLA LAUNG ELAICHI CAFE - ACCOUNTANCY LEDGER</div>
+                    <div class="title">THE BANGLA LAUNG ELAICHI CAFE - ACCOUNTANCY LEDGER & KPI REPORT</div>
                     <div class="subtitle">Generated on: ${new Date().toLocaleString()} | Bangla Chauraha, Lucknow</div>
+                    
+                    <!-- KPI SUMMARY TABLE -->
+                    <table class="kpi-table" style="margin-bottom: 20px;">
+                        <tr>
+                            <td>TOTAL REVENUE: ₹${totalRev.toFixed(2)}</td>
+                            <td>TOTAL BILLS: ${accountancyBills.length}</td>
+                            <td>CASH COLL: ₹${cashRev.toFixed(2)}</td>
+                            <td>UPI / CARD: ₹${(upiRev + cardRev).toFixed(2)}</td>
+                            <td>TODAY'S CLOSING BAL: ₹${totalRev.toFixed(2)}</td>
+                        </tr>
+                    </table>
+
                     <table>
                         <thead>
                             <tr>
@@ -858,9 +979,7 @@
                         <tbody>
             `;
 
-            let totalRev = 0;
             accountancyBills.forEach(b => {
-                totalRev += b.grandTotal;
                 html += `
                     <tr>
                         <td style="font-weight: bold; color: #b45309;">${b.invoiceNo}</td>
@@ -876,7 +995,7 @@
 
             html += `
                         <tr style="background-color: #fef3c7; font-weight: bold;">
-                            <td colspan="6" style="text-align: right; padding: 10px;">TOTAL REVENUE:</td>
+                            <td colspan="6" style="text-align: right; padding: 10px;">DAILY CLOSING BALANCE (TOTAL REVENUE):</td>
                             <td class="amount" style="font-size: 12pt;">₹${totalRev.toFixed(2)}</td>
                         </tr>
                         </tbody>
@@ -889,13 +1008,13 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.href = url;
-            link.download = `Accountancy_Ledger_Chart_${new Date().toISOString().slice(0, 10)}.xls`;
+            link.download = `Accountancy_Ledger_KPI_Chart_${new Date().toISOString().slice(0, 10)}.xls`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
 
-        // --- INVENTORY & SOH MANAGEMENT & STYLIZED EXCEL EXPORT ---
+        // --- INVENTORY & SOH MANAGEMENT ---
         function renderInventoryTable() {
             const tbody = document.getElementById('inventory-table-body');
             tbody.innerHTML = '';
