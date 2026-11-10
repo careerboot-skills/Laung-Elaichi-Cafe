@@ -2,8 +2,8 @@
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Bangla Laung Elaichi Cafe - POS & Accounting System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Bangla Laung Elaichi Cafe - POS, Accounting & Inventory</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -35,7 +35,7 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-amber-500 selection:text-slate-950">
 
-    <!-- Floating 4D Animated Stickers Background Accent -->
+    <!-- Floating Background Accent -->
     <div class="fixed inset-0 pointer-events-none overflow-hidden z-0 opacity-20">
         <div class="absolute top-10 left-10 text-5xl floating-sticker" style="animation-delay: 0s;">☕</div>
         <div class="absolute top-20 right-20 text-5xl floating-sticker" style="animation-delay: 1s;">🥟</div>
@@ -55,7 +55,7 @@
                         The Bangla Laung Elaichi Cafe
                     </h1>
                     <p class="text-xs text-slate-400 flex items-center gap-1">
-                        <i class="fa-solid fa-location-dot text-amber-500"></i> Bangla Chauraha, Beside Mahakal Kachori, Lucknow | 📞 9005041462
+                        <i class="fa-solid fa-location-dot text-amber-500"></i> Bangla Chauraha, Lucknow | 📞 9005041462
                     </p>
                 </div>
             </div>
@@ -63,11 +63,14 @@
             <!-- Tab Navigation & Live Clock -->
             <div class="flex items-center gap-3">
                 <div class="bg-slate-800 p-1 rounded-xl flex gap-1 border border-slate-700">
-                    <button onclick="switchMainTab('pos')" id="nav-tab-pos" class="px-4 py-2 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md">
-                        <i class="fa-solid fa-cash-register mr-1.5"></i> POS System
+                    <button onclick="switchMainTab('pos')" id="nav-tab-pos" class="px-3.5 py-2 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md">
+                        <i class="fa-solid fa-cash-register mr-1"></i> POS
                     </button>
-                    <button onclick="switchMainTab('accounting')" id="nav-tab-accounting" class="px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white">
-                        <i class="fa-solid fa-chart-pie mr-1.5"></i> Accountancy Ledger
+                    <button onclick="switchMainTab('accounting')" id="nav-tab-accounting" class="px-3.5 py-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white">
+                        <i class="fa-solid fa-chart-pie mr-1"></i> Ledger
+                    </button>
+                    <button onclick="switchMainTab('inventory')" id="nav-tab-inventory" class="px-3.5 py-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white">
+                        <i class="fa-solid fa-boxes-stacked mr-1"></i> Inventory & SOH
                     </button>
                 </div>
                 <div id="live-clock" class="hidden md:block text-xs font-mono bg-slate-800/80 px-3 py-2 rounded-xl border border-slate-700 text-amber-400"></div>
@@ -78,7 +81,7 @@
     <!-- Main Container -->
     <main class="flex-grow max-w-7xl w-full mx-auto p-4 relative z-10 flex flex-col">
 
-        <!-- ================================= ACCOUNTANCY TAB ================================= -->
+        <!-- ================================= ACCOUNTANCY LEDGER TAB ================================= -->
         <div id="view-accounting" class="hidden flex-col gap-6">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="glass-card p-5 rounded-2xl flex items-center justify-between">
@@ -86,27 +89,21 @@
                         <p class="text-xs text-slate-400 uppercase font-semibold">Total Revenue</p>
                         <h3 id="rep-total-revenue" class="text-2xl font-black text-amber-400 mt-1">₹0.00</h3>
                     </div>
-                    <div class="bg-amber-500/10 p-3.5 rounded-xl text-amber-500 text-xl">
-                        <i class="fa-solid fa-indian-rupee-sign"></i>
-                    </div>
+                    <div class="bg-amber-500/10 p-3.5 rounded-xl text-amber-500 text-xl"><i class="fa-solid fa-indian-rupee-sign"></i></div>
                 </div>
                 <div class="glass-card p-5 rounded-2xl flex items-center justify-between">
                     <div>
                         <p class="text-xs text-slate-400 uppercase font-semibold">Total Bills Generated</p>
                         <h3 id="rep-total-bills" class="text-2xl font-black text-orange-400 mt-1">0</h3>
                     </div>
-                    <div class="bg-orange-500/10 p-3.5 rounded-xl text-orange-500 text-xl">
-                        <i class="fa-solid fa-file-invoice-dollar"></i>
-                    </div>
+                    <div class="bg-orange-500/10 p-3.5 rounded-xl text-orange-500 text-xl"><i class="fa-solid fa-file-invoice-dollar"></i></div>
                 </div>
                 <div class="glass-card p-5 rounded-2xl flex items-center justify-between">
                     <div>
                         <p class="text-xs text-slate-400 uppercase font-semibold">Primary Payment Mode</p>
                         <h3 id="rep-top-payment" class="text-xl font-bold text-emerald-400 mt-1">UPI</h3>
                     </div>
-                    <div class="bg-emerald-500/10 p-3.5 rounded-xl text-emerald-500 text-xl">
-                        <i class="fa-solid fa-wallet"></i>
-                    </div>
+                    <div class="bg-emerald-500/10 p-3.5 rounded-xl text-emerald-500 text-xl"><i class="fa-solid fa-wallet"></i></div>
                 </div>
             </div>
 
@@ -115,12 +112,17 @@
                     <h3 class="font-bold text-base flex items-center gap-2">
                         <i class="fa-solid fa-book text-amber-500"></i> Accountancy Bill Records Ledger
                     </h3>
-                    <button onclick="loadAccountingReports()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-xl transition-all flex items-center gap-1.5">
-                        <i class="fa-solid fa-rotate-right"></i> Refresh Data
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button onclick="exportLedgerExcel()" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-lg shadow-emerald-600/20 font-bold">
+                            <i class="fa-solid fa-file-excel"></i> Export Excel Chart
+                        </button>
+                        <button onclick="loadAccountingReports()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-xl transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-rotate-right"></i> Refresh
+                        </button>
+                    </div>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs">
+                    <table class="w-full text-left text-xs" id="ledger-table">
                         <thead class="bg-slate-900/80 text-slate-400 uppercase font-semibold border-b border-slate-800">
                             <tr>
                                 <th class="p-3">Invoice No</th>
@@ -141,12 +143,53 @@
             </div>
         </div>
 
+        <!-- ================================= INVENTORY & SOH TAB ================================= -->
+        <div id="view-inventory" class="hidden flex-col gap-6">
+            <div class="glass-card p-5 rounded-2xl flex flex-wrap justify-between items-center gap-4">
+                <div>
+                    <h2 class="text-lg font-black text-white flex items-center gap-2">
+                        <i class="fa-solid fa-boxes-stacked text-amber-500"></i> Stock on Hand (SOH) & Inventory Management
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Manage stock items available for POS billing and export SOH reports.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="exportSOHExcel()" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 font-bold shadow-lg shadow-emerald-600/20">
+                        <i class="fa-solid fa-file-excel"></i> Export SOH Excel
+                    </button>
+                    <button onclick="openAddStockModal()" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 font-extrabold shadow-lg shadow-amber-500/20">
+                        <i class="fa-solid fa-plus"></i> Add / Update Stock
+                    </button>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-2xl p-5 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs" id="soh-table">
+                        <thead class="bg-slate-900/80 text-slate-400 uppercase font-semibold border-b border-slate-800">
+                            <tr>
+                                <th class="p-3">Item Code</th>
+                                <th class="p-3">Item Name</th>
+                                <th class="p-3">Variant</th>
+                                <th class="p-3">Category</th>
+                                <th class="p-3 text-right">Unit Price (₹)</th>
+                                <th class="p-3 text-center">Current Stock (SOH)</th>
+                                <th class="p-3 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-table-body" class="divide-y divide-slate-800/60">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <!-- ================================= POS LAYERED WORKFLOW ================================= -->
         <div id="view-pos-container" class="flex-grow flex flex-col">
 
-            <!-- LAYER 1: Customer Details & Animated Welcome Vibe -->
+            <!-- LAYER 1: Customer Details -->
             <div id="pos-step-1" class="flex-grow flex items-center justify-center py-12">
-                <div class="glass-card max-w-lg w-full p-8 rounded-3xl shadow-2xl border border-slate-700/80 text-center relative overflow-hidden">
+                <div class="glass-card max-w-md sm:max-w-lg w-full p-6 sm:p-8 rounded-3xl shadow-2xl border border-slate-700/85 text-center relative overflow-hidden">
                     <div class="absolute -top-10 -right-10 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
                     <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -176,9 +219,9 @@
                 </div>
             </div>
 
-            <!-- LAYER 2: Category Selector (Bright & Vibrant Buttons) -->
+            <!-- LAYER 2: Category Selector -->
             <div id="pos-step-2" class="hidden flex-grow flex-col justify-center items-center py-12">
-                <div class="max-w-3xl w-full text-center">
+                <div class="max-w-3xl w-full text-center px-4">
                     <div class="flex justify-between items-center mb-6">
                         <button onclick="backToStep1()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-xl transition-all flex items-center gap-1.5">
                             <i class="fa-solid fa-arrow-left"></i> Change Customer Info
@@ -219,9 +262,9 @@
             </div>
 
             <!-- LAYER 3: Cafe Product Listing & POS Billing Terminal -->
-            <div id="pos-step-3" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div id="pos-step-3" class="hidden grid grid-cols-1 xl:grid-cols-12 gap-6">
                 <!-- Left Panel: Menu Items -->
-                <div class="lg:col-span-7 flex flex-col gap-4">
+                <div class="xl:col-span-7 flex flex-col gap-4">
                     <div class="glass-card p-4 rounded-2xl flex items-center justify-between gap-3">
                         <button onclick="backToStep2()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-xl transition-all flex items-center gap-1.5 shrink-0">
                             <i class="fa-solid fa-arrow-left"></i> Categories
@@ -239,7 +282,7 @@
                 </div>
 
                 <!-- Right Panel: Cart & Checkout -->
-                <div class="lg:col-span-5 flex flex-col gap-4">
+                <div class="xl:col-span-5 flex flex-col gap-4">
                     <div class="glass-card p-5 rounded-2xl flex flex-col h-[calc(100vh-100px)] sticky top-20">
                         <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-3">
                             <div>
@@ -325,44 +368,62 @@
         </div>
     </div>
 
+    <!-- Add / Edit Stock Modal -->
+    <div id="stock-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
+            <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-boxes-stacked text-amber-500"></i> Add / Update Stock (SOH)
+            </h3>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Item Code</label>
+                    <input type="text" id="stock-code" placeholder="e.g. T10" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Item Name</label>
+                    <input type="text" id="stock-name" placeholder="e.g. Special Chai" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Variant</label>
+                        <input type="text" id="stock-variant" placeholder="e.g. Regular" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Category</label>
+                        <select id="stock-category" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+                            <option value="tea">Tea</option>
+                            <option value="coffee">Coffee</option>
+                            <option value="momos">Momos</option>
+                            <option value="bakery">Bakery</option>
+                            <option value="masala">Masala</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Stock (SOH)</label>
+                        <input type="number" id="stock-qty" placeholder="50" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Price (₹)</label>
+                        <input type="number" id="stock-price" placeholder="20" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-2 mt-5">
+                <button onclick="closeStockModal()" class="w-1/2 bg-slate-800 hover:bg-slate-700 py-2.5 rounded-xl text-xs font-bold text-slate-300">Cancel</button>
+                <button onclick="saveStockItem()" class="w-1/2 bg-amber-500 hover:bg-amber-400 py-2.5 rounded-xl text-xs font-bold text-slate-950 shadow-lg shadow-amber-500/20">Save Stock</button>
+            </div>
+        </div>
+    </div>
+
     <!-- JavaScript Application Logic -->
     <script>
         const socket = io();
 
-        const menuItems = [
-            { code: "T10", name: "Sukoon Ki Chai", variant: "Regular", price: 10, category: "tea", icon: "☕" },
-            { code: "T15", name: "Kulhad Chai", variant: "Kulhad", price: 15, category: "tea", icon: "🍵" },
-            { code: "T20", name: "Special Chai", variant: "Kulhad", price: 20, category: "tea", icon: "🫖" },
-            { code: "T25", name: "Rajwadi Chai", variant: "Royal Kullad", price: 25, category: "tea", icon: "👑" },
-            { code: "CS20", name: "Coffee Small", variant: "Regular", price: 20, category: "coffee", icon: "☕" },
-            { code: "CK25", name: "Coffee Kulhad", variant: "Kulhad", price: 25, category: "coffee", icon: "☕" },
-            { code: "CS30", name: "Coffee Special", variant: "Special", price: 30, category: "coffee", icon: "☕" },
-            { code: "BM20", name: "Bun Makkhan", variant: "Standard", price: 20, category: "bakery", icon: "🧈" },
-
-            { code: "MSV30", name: "Veg Steam Momo", variant: "Half", price: 30, category: "momos", icon: "🥟" },
-            { code: "MSV50", name: "Veg Steam Momo", variant: "Full", price: 50, category: "momos", icon: "🥟" },
-            { code: "MSP40", name: "Paneer Steam Momo", variant: "Half", price: 40, category: "momos", icon: "🧀" },
-            { code: "MSP70", name: "Paneer Steam Momo", variant: "Full", price: 70, category: "momos", icon: "🧀" },
-
-            { code: "MFV40", name: "Veg Fry Momo", variant: "Half", price: 40, category: "momos", icon: "🔥" },
-            { code: "MFV70", name: "Veg Fry Momo", variant: "Full", price: 70, category: "momos", icon: "🔥" },
-            { code: "MFP50", name: "Paneer Fry Momo", variant: "Half", price: 50, category: "momos", icon: "🔥" },
-            { code: "MFP90", name: "Paneer Fry Momo", variant: "Full", price: 90, category: "momos", icon: "🔥" },
-
-            { code: "MCV50", name: "Veg Crunchy Momo", variant: "Half", price: 50, category: "momos", icon: "✨" },
-            { code: "MCV90", name: "Veg Crunchy Momo", variant: "Full", price: 90, category: "momos", icon: "✨" },
-            { code: "MCP55", name: "Paneer Crunchy Momo", variant: "Half", price: 55, category: "momos", icon: "✨" },
-            { code: "MCP100", name: "Paneer Crunchy Momo", variant: "Full", price: 100, category: "momos", icon: "✨" },
-
-            { code: "MKV55", name: "Veg Kurkure Momo", variant: "Half", price: 55, category: "momos", icon: "🌟" },
-            { code: "MKV100", name: "Veg Kurkure Momo", variant: "Full", price: 100, category: "momos", icon: "🌟" },
-            { code: "MKP60", name: "Paneer Kurkure Momo", variant: "Half", price: 60, category: "momos", icon: "🌟" },
-            { code: "MKP110", name: "Paneer Kurkure Momo", variant: "Full", price: 110, category: "momos", icon: "🌟" },
-
-            { code: "CM50", name: "Chai Post Mix Masala", variant: "Mini Pkt", price: 50, category: "masala", icon: "📦" },
-            { code: "CM200", name: "Chai Post Mix Masala", variant: "Mega Pkt", price: 200, category: "masala", icon: "📦" }
-        ];
-
+        let menuItems = [];
+        let inventoryList = [];
+        let accountancyBills = [];
         let cart = [];
         let selectedPayment = 'UPI';
         let currentCategoryFilter = 'all';
@@ -372,10 +433,15 @@
         document.addEventListener('DOMContentLoaded', () => {
             updateClock();
             setInterval(updateClock, 1000);
+            loadMenuAndInventory();
             loadAccountingReports();
 
             socket.on('new-bill-created', (bill) => {
                 loadAccountingReports();
+                loadMenuAndInventory();
+            });
+            socket.on('inventory-updated', () => {
+                loadMenuAndInventory();
             });
         });
 
@@ -384,20 +450,46 @@
             document.getElementById('live-clock').innerText = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
         }
 
-        // Switch Top Level Tabs (POS vs Accounting)
+        // Switch Top Level Tabs
         function switchMainTab(tab) {
+            ['pos', 'accounting', 'inventory'].forEach(t => {
+                document.getElementById(`view-${t === 'pos' ? 'pos-container' : t}`).classList.add('hidden');
+                document.getElementById(`nav-tab-${t}`).className = "px-3.5 py-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white";
+            });
+
             if (tab === 'pos') {
                 document.getElementById('view-pos-container').classList.remove('hidden');
-                document.getElementById('view-accounting').classList.add('hidden');
-                document.getElementById('nav-tab-pos').className = "px-4 py-2 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md";
-                document.getElementById('nav-tab-accounting').className = "px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white";
-            } else {
-                document.getElementById('view-pos-container').classList.add('hidden');
+                document.getElementById('nav-tab-pos').className = "px-3.5 py-2 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md";
+            } else if (tab === 'accounting') {
                 document.getElementById('view-accounting').classList.remove('hidden');
                 document.getElementById('view-accounting').classList.add('flex');
-                document.getElementById('nav-tab-accounting').className = "px-4 py-2 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md";
-                document.getElementById('nav-tab-pos').className = "px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white";
+                document.getElementById('nav-tab-accounting').className = "px-3.5 py-2 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md";
                 loadAccountingReports();
+            } else if (tab === 'inventory') {
+                document.getElementById('view-inventory').classList.remove('hidden');
+                document.getElementById('view-inventory').classList.add('flex');
+                document.getElementById('nav-tab-inventory').className = "px-3.5 py-2 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md";
+                loadMenuAndInventory();
+            }
+        }
+
+        async function loadMenuAndInventory() {
+            try {
+                const res = await fetch('/api/menu');
+                const data = await res.json();
+                if (data.success) {
+                    menuItems = data.menu;
+                    renderMenuForCategory(currentCategoryFilter);
+                }
+
+                const invRes = await fetch('/api/inventory');
+                const invData = await invRes.json();
+                if (invData.success) {
+                    inventoryList = invData.inventory;
+                    renderInventoryTable();
+                }
+            } catch (err) {
+                console.log('Error loading inventory data.');
             }
         }
 
@@ -457,11 +549,11 @@
                 card.innerHTML = `
                     <div>
                         <div class="flex justify-between items-start mb-1">
-                            <span class="text-xl group-hover:scale-110 transition-transform">${item.icon}</span>
+                            <span class="text-xl group-hover:scale-110 transition-transform">${item.icon || '☕'}</span>
                             <span class="text-[10px] font-mono bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-md font-bold">${item.code}</span>
                         </div>
                         <h4 class="font-bold text-xs text-white leading-snug">${item.name}</h4>
-                        <p class="text-[10px] text-slate-400">${item.variant}</p>
+                        <p class="text-[10px] text-slate-400">${item.variant} <span class="text-slate-500">(Stock: ${item.stock ?? 50})</span></p>
                     </div>
                     <div class="mt-2 flex justify-between items-center pt-2 border-t border-slate-800/60">
                         <span class="font-extrabold text-amber-400 text-xs">₹${item.price}</span>
@@ -608,6 +700,7 @@
                 if (data.success) {
                     activeInvoiceNo = data.bill.invoiceNo;
                     showInvoiceModal(data.bill);
+                    loadMenuAndInventory();
                 } else {
                     alert('Error saving bill: ' + data.message);
                 }
@@ -630,7 +723,7 @@
             
             let receiptHTML = `
                 <div class="text-center font-bold">THE BANGLA LAUNG ELAICHI CAFE</div>
-                <div class="text-[9px] text-center text-slate-400">Bangla Chauraha, Beside Mahakal Kachori, Lucknow</div>
+                <div class="text-[9px] text-center text-slate-400">Bangla Chauraha, Lucknow</div>
                 <div class="text-[9px] text-center text-amber-400">Helpline: 9005041462</div>
                 <div>----------------------------------------</div>
                 <div>Inv: ${bill.invoiceNo}</div>
@@ -680,13 +773,14 @@
             document.getElementById('pos-step-1').classList.remove('hidden');
         }
 
-        // --- ACCOUNTANCY REPORTS ---
+        // --- ACCOUNTANCY REPORTS & EXCEL EXPORT ---
         async function loadAccountingReports() {
             try {
                 const res = await fetch('/api/reports/summary');
                 const data = await res.json();
 
                 if (data.success && data.totalRevenue !== undefined) {
+                    accountancyBills = data.recentBills || [];
                     document.getElementById('rep-total-revenue').innerText = `₹${data.totalRevenue.toFixed(2)}`;
                     document.getElementById('rep-total-bills').innerText = data.totalBills;
 
@@ -697,17 +791,17 @@
                     const tbody = document.getElementById('ledger-table-body');
                     tbody.innerHTML = '';
 
-                    if (data.recentBills.length === 0) {
+                    if (accountancyBills.length === 0) {
                         tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-500">No bill records found yet.</td></tr>`;
                         return;
                     }
 
-                    data.recentBills.forEach(bill => {
+                    accountancyBills.forEach(bill => {
                         const tr = document.createElement('tr');
                         tr.className = "hover:bg-slate-900/50 transition-colors";
                         tr.innerHTML = `
                             <td class="p-3 font-mono font-bold text-amber-400">${bill.invoiceNo}</td>
-                            <td class="p-3 text-slate-400">${new Date(bill.createdAt).toLocaleTimeString()}</td>
+                            <td class="p-3 text-slate-400">${new Date(bill.createdAt).toLocaleString()}</td>
                             <td class="p-3 font-semibold text-white">${bill.customerName}</td>
                             <td class="p-3 text-slate-300">${bill.customerPhone || 'N/A'}</td>
                             <td class="p-3 text-slate-300">${bill.items.map(i => `${i.name} (${i.qty})`).join(', ')}</td>
@@ -723,8 +817,137 @@
                     });
                 }
             } catch (err) {
-                console.log('Accounting summary sync note: Running local interface.');
+                console.log('Accounting summary sync note.');
             }
+        }
+
+        function exportLedgerExcel() {
+            if (!accountancyBills || accountancyBills.length === 0) {
+                alert('No ledger records available to export.');
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,Invoice No,Date,Customer Name,Phone,Payment Method,Subtotal,Grand Total\n";
+            accountancyBills.forEach(b => {
+                const row = [b.invoiceNo, `"${new Date(b.createdAt).toLocaleString()}"`, `"${b.customerName}"`, b.customerPhone, b.paymentMethod, b.subtotal, b.grandTotal];
+                csvContent += row.join(",") + "\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Accountancy_Ledger_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- INVENTORY & SOH MANAGEMENT ---
+        function renderInventoryTable() {
+            const tbody = document.getElementById('inventory-table-body');
+            tbody.innerHTML = '';
+
+            if (!inventoryList || inventoryList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-500">No inventory items found.</td></tr>`;
+                return;
+            }
+
+            inventoryList.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-900/50 transition-colors";
+                tr.innerHTML = `
+                    <td class="p-3 font-mono font-bold text-amber-400">${item.code}</td>
+                    <td class="p-3 font-semibold text-white">${item.name}</td>
+                    <td class="p-3 text-slate-400">${item.variant}</td>
+                    <td class="p-3 uppercase text-[10px] text-slate-300 font-bold">${item.category}</td>
+                    <td class="p-3 text-right font-bold text-amber-400">₹${item.unitPrice ?? item.price}</td>
+                    <td class="p-3 text-center font-black ${item.stock < 10 ? 'text-rose-400' : 'text-emerald-400'}">${item.stock} Units</td>
+                    <td class="p-3 text-center">
+                        <button onclick="quickEditStock('${item.code}', '${item.name}', '${item.variant}', '${item.category}', ${item.stock}, ${item.unitPrice ?? item.price})" class="bg-slate-800 hover:bg-slate-700 text-amber-400 px-3 py-1 rounded-lg text-xs font-bold transition-colors">
+                            <i class="fa-solid fa-pen"></i> Edit
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openAddStockModal() {
+            document.getElementById('stock-code').value = '';
+            document.getElementById('stock-code').disabled = false;
+            document.getElementById('stock-name').value = '';
+            document.getElementById('stock-variant').value = 'Standard';
+            document.getElementById('stock-category').value = 'tea';
+            document.getElementById('stock-qty').value = '50';
+            document.getElementById('stock-price').value = '20';
+            document.getElementById('stock-modal').classList.remove('hidden');
+        }
+
+        function quickEditStock(code, name, variant, category, stock, price) {
+            document.getElementById('stock-code').value = code;
+            document.getElementById('stock-code').disabled = true;
+            document.getElementById('stock-name').value = name;
+            document.getElementById('stock-variant').value = variant;
+            document.getElementById('stock-category').value = category;
+            document.getElementById('stock-qty').value = stock;
+            document.getElementById('stock-price').value = price;
+            document.getElementById('stock-modal').classList.remove('hidden');
+        }
+
+        function closeStockModal() {
+            document.getElementById('stock-modal').classList.add('hidden');
+        }
+
+        async function saveStockItem() {
+            const code = document.getElementById('stock-code').value.trim();
+            const name = document.getElementById('stock-name').value.trim();
+            const variant = document.getElementById('stock-variant').value.trim();
+            const category = document.getElementById('stock-category').value;
+            const stock = parseInt(document.getElementById('stock-qty').value);
+            const unitPrice = parseFloat(document.getElementById('stock-price').value);
+
+            if (!code || !name || isNaN(stock) || isNaN(unitPrice)) {
+                alert('Please fill all stock fields correctly.');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/inventory/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, name, variant, category, stock, unitPrice })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    closeStockModal();
+                    loadMenuAndInventory();
+                } else {
+                    alert('Failed to update stock: ' + data.message);
+                }
+            } catch (err) {
+                alert('Server error while saving stock.');
+            }
+        }
+
+        function exportSOHExcel() {
+            if (!inventoryList || inventoryList.length === 0) {
+                alert('No inventory available to export.');
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,Item Code,Item Name,Variant,Category,Unit Price,Current Stock (SOH)\n";
+            inventoryList.forEach(i => {
+                const row = [i.code, `"${i.name}"`, `"${i.variant}"`, i.category, i.unitPrice ?? i.price, i.stock];
+                csvContent += row.join(",") + "\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Stock_On_Hand_SOH_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     </script>
 </body>
