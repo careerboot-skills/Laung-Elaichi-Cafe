@@ -1,7 +1,7 @@
 {
   "name": "laung-elaichi-cafe-pos",
   "version": "1.0.0",
-  "description": "Premium 4K Billing POS & Accounting Web Application for Laung Elaichi Cafe",
+  "description": "Premium Billing POS, Accounting & SOH Inventory Web Application for Laung Elaichi Cafe",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -22,3 +22,4 @@
     "node": ">=18.0.0"
   }
 }
+```[cite: 4]
