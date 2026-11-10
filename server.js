@@ -64,52 +64,144 @@ const billSchema = new mongoose.Schema({
 
 const Bill = mongoose.model('Bill', billSchema);
 
+const inventorySchema = new mongoose.Schema({
+    code: { type: String, required: true, unique: true },
+    name: { type: String, required: true },
+    variant: { type: String, default: 'Standard' },
+    category: { type: String, required: true },
+    stock: { type: Number, required: true, default: 50 },
+    unitPrice: { type: Number, required: true, default: 0 }
+}, { timestamps: true });
+
+const InventoryItem = mongoose.model('InventoryItem', inventorySchema);
+
 // Synchronized Menu Inventory Data
-const MENU_DATA = [
-    { code: "T10", name: "Sukoon Ki Chai", variant: "Regular", price: 10, category: "tea" },
-    { code: "T15", name: "Kulhad Chai", variant: "Kulhad", price: 15, category: "tea" },
-    { code: "T20", name: "Special Chai", variant: "Kulhad", price: 20, category: "tea" },
-    { code: "T25", name: "Rajwadi Chai", variant: "Royal Kullad", price: 25, category: "tea" },
-    { code: "CS20", name: "Coffee Small", variant: "Regular", price: 20, category: "coffee" },
-    { code: "CK25", name: "Coffee Kulhad", variant: "Kulhad", price: 25, category: "coffee" },
-    { code: "CS30", name: "Coffee Special", variant: "Special", price: 30, category: "coffee" },
-    { code: "BM20", name: "Bun Makkhan", variant: "Standard", price: 20, category: "bakery" },
+const INITIAL_MENU_DATA = [
+    { code: "T10", name: "Sukoon Ki Chai", variant: "Regular", price: 10, category: "tea", stock: 100 },
+    { code: "T15", name: "Kulhad Chai", variant: "Kulhad", price: 15, category: "tea", stock: 100 },
+    { code: "T20", name: "Special Chai", variant: "Kulhad", price: 20, category: "tea", stock: 100 },
+    { code: "T25", name: "Rajwadi Chai", variant: "Royal Kullad", price: 25, category: "tea", stock: 80 },
+    { code: "CS20", name: "Coffee Small", variant: "Regular", price: 20, category: "coffee", stock: 60 },
+    { code: "CK25", name: "Coffee Kulhad", variant: "Kulhad", price: 25, category: "coffee", stock: 60 },
+    { code: "CS30", name: "Coffee Special", variant: "Special", price: 30, category: "coffee", stock: 50 },
+    { code: "BM20", name: "Bun Makkhan", variant: "Standard", price: 20, category: "bakery", stock: 40 },
 
-    { code: "MSV30", name: "Veg Steam Momo", variant: "Half", price: 30, category: "momos" },
-    { code: "MSV50", name: "Veg Steam Momo", variant: "Full", price: 50, category: "momos" },
-    { code: "MSP40", name: "Paneer Steam Momo", variant: "Half", price: 40, category: "momos" },
-    { code: "MSP70", name: "Paneer Steam Momo", variant: "Full", price: 70, category: "momos" },
+    { code: "MSV30", name: "Veg Steam Momo", variant: "Half", price: 30, category: "momos", stock: 50 },
+    { code: "MSV50", name: "Veg Steam Momo", variant: "Full", price: 50, category: "momos", stock: 50 },
+    { code: "MSP40", name: "Paneer Steam Momo", variant: "Half", price: 40, category: "momos", stock: 40 },
+    { code: "MSP70", name: "Paneer Steam Momo", variant: "Full", price: 70, category: "momos", stock: 40 },
 
-    { code: "MFV40", name: "Veg Fry Momo", variant: "Half", price: 40, category: "momos" },
-    { code: "MFV70", name: "Veg Fry Momo", variant: "Full", price: 70, category: "momos" },
-    { code: "MFP50", name: "Paneer Fry Momo", variant: "Half", price: 50, category: "momos" },
-    { code: "MFP90", name: "Paneer Fry Momo", variant: "Full", price: 90, category: "momos" },
+    { code: "MFV40", name: "Veg Fry Momo", variant: "Half", price: 40, category: "momos", stock: 50 },
+    { code: "MFV70", name: "Veg Fry Momo", variant: "Full", price: 70, category: "momos", stock: 50 },
+    { code: "MFP50", name: "Paneer Fry Momo", variant: "Half", price: 50, category: "momos", stock: 40 },
+    { code: "MFP90", name: "Paneer Fry Momo", variant: "Full", price: 90, category: "momos", stock: 40 },
 
-    { code: "MCV50", name: "Veg Crunchy Momo", variant: "Half", price: 50, category: "momos" },
-    { code: "MCV90", name: "Veg Crunchy Momo", variant: "Full", price: 90, category: "momos" },
-    { code: "MCP55", name: "Paneer Crunchy Momo", variant: "Half", price: 55, category: "momos" },
-    { code: "MCP100", name: "Paneer Crunchy Momo", variant: "Full", price: 100, category: "momos" },
+    { code: "MCV50", name: "Veg Crunchy Momo", variant: "Half", price: 50, category: "momos", stock: 30 },
+    { code: "MCV90", name: "Veg Crunchy Momo", variant: "Full", price: 90, category: "momos", stock: 30 },
+    { code: "MCP55", name: "Paneer Crunchy Momo", variant: "Half", price: 55, category: "momos", stock: 30 },
+    { code: "MCP100", name: "Paneer Crunchy Momo", variant: "Full", price: 100, category: "momos", stock: 30 },
 
-    { code: "MKV55", name: "Veg Kurkure Momo", variant: "Half", price: 55, category: "momos" },
-    { code: "MKV100", name: "Veg Kurkure Momo", variant: "Full", price: 100, category: "momos" },
-    { code: "MKP60", name: "Paneer Kurkure Momo", variant: "Half", price: 60, category: "momos" },
-    { code: "MKP110", name: "Paneer Kurkure Momo", variant: "Full", price: 110, category: "momos" },
+    { code: "MKV55", name: "Veg Kurkure Momo", variant: "Half", price: 55, category: "momos", stock: 30 },
+    { code: "MKV100", name: "Veg Kurkure Momo", variant: "Full", price: 100, category: "momos", stock: 30 },
+    { code: "MKP60", name: "Paneer Kurkure Momo", variant: "Half", price: 60, category: "momos", stock: 30 },
+    { code: "MKP110", name: "Paneer Kurkure Momo", variant: "Full", price: 110, category: "momos", stock: 30 },
 
-    { code: "CM50", name: "Chai Post Mix Masala", variant: "Mini Pkt", price: 50, category: "masala" },
-    { code: "CM200", name: "Chai Post Mix Masala", variant: "Mega Pkt", price: 200, category: "masala" }
+    { code: "CM50", name: "Chai Post Mix Masala", variant: "Mini Pkt", price: 50, category: "masala", stock: 50 },
+    { code: "CM200", name: "Chai Post Mix Masala", variant: "Mega Pkt", price: 200, category: "masala", stock: 25 }
 ];
 
-// Database Connection with graceful fallback
+// Database Connection with graceful initialization
 mongoose.connect(MONGO_URI)
-    .then(() => console.log('✅ Connected to MongoDB (The Bangla Laung Elaichi Cafe Database)'))
-    .catch((err) => console.log('⚠️ MongoDB Connection Note: Running in standalone memory mode until DB connects.', err.message));
+    async function initDB() {
+        try {
+            console.log('✅ Connected to MongoDB (The Bangla Laung Elaichi Cafe Database)');
+            const count = await InventoryItem.countDocuments();
+            if (count === 0) {
+                for (let item of INITIAL_MENU_DATA) {
+                    await InventoryItem.create({
+                        code: item.code,
+                        name: item.name,
+                        variant: item.variant,
+                        category: item.category,
+                        stock: item.stock,
+                        unitPrice: item.price
+                    });
+                }
+                console.log('📦 Initial Inventory Seeded Successfully.');
+            }
+        } catch (err) {
+            console.log('⚠️ MongoDB Connection Note: Running in standalone memory mode until DB connects.', err.message);
+        }
+    }
+initDB();
 
 // ==========================================
 // API ROUTES
 // ==========================================
 
-app.get('/api/menu', (req, res) => {
-    res.json({ success: true, menu: MENU_DATA });
+app.get('/api/menu', async (req, res) => {
+    try {
+        if (mongoose.connection.readyState === 1) {
+            const items = await InventoryItem.find({});
+            const formatted = items.map(i => ({
+                code: i.code,
+                name: i.name,
+                variant: i.variant,
+                price: i.unitPrice,
+                category: i.category,
+                stock: i.stock,
+                icon: getCategoryIcon(i.category)
+            }));
+            return res.json({ success: true, menu: formatted });
+        }
+        res.json({ success: true, menu: INITIAL_MENU_DATA.map(i => ({ ...i, icon: getCategoryIcon(i.category) })) });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Error fetching menu inventory.' });
+    }
+});
+
+function getCategoryIcon(cat) {
+    switch (cat) {
+        case 'tea': return '☕';
+        case 'coffee': return '🫖';
+        case 'momos': return '🥟';
+        case 'bakery': return '🧈';
+        case 'masala': return '📦';
+        default: return '🍽️';
+    }
+}
+
+app.get('/api/inventory', async (req, res) => {
+    try {
+        if (mongoose.connection.readyState === 1) {
+            const items = await InventoryItem.find({}).sort({ category: 1, name: 1 });
+            return res.json({ success: true, inventory: items });
+        }
+        res.json({ success: true, inventory: INITIAL_MENU_DATA });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to fetch inventory.' });
+    }
+});
+
+app.post('/api/inventory/update', async (req, res) => {
+    try {
+        const { code, stock, unitPrice, name, variant, category } = req.body;
+        if (mongoose.connection.readyState === 1) {
+            let item = await InventoryItem.findOne({ code });
+            if (item) {
+                if (stock !== undefined) item.stock = parseInt(stock);
+                if (unitPrice !== undefined) item.unitPrice = parseFloat(unitPrice);
+                await item.save();
+            } else {
+                item = await InventoryItem.create({ code, name, variant, category, stock: parseInt(stock || 50), unitPrice: parseFloat(unitPrice || 10) });
+            }
+            io.emit('inventory-updated', item);
+            return res.json({ success: true, message: 'Inventory updated successfully!', item });
+        }
+        res.json({ success: true, message: 'Mock inventory updated.' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to update stock.', error: error.message });
+    }
 });
 
 app.post('/api/bills/create', async (req, res) => {
@@ -142,6 +234,14 @@ app.post('/api/bills/create', async (req, res) => {
         if (mongoose.connection.readyState === 1) {
             const billDoc = new Bill(newBillData);
             savedBill = await billDoc.save();
+
+            // Deduct Stock
+            for (let orderedItem of items) {
+                await InventoryItem.findOneAndUpdate(
+                    { code: orderedItem.code },
+                    { $inc: { stock: -orderedItem.qty } }
+                );
+            }
         }
 
         io.emit('new-bill-created', savedBill);
@@ -185,7 +285,7 @@ app.get('/api/reports/summary', async (req, res) => {
                 totalBills,
                 paymentBreakdown,
                 itemSalesCount,
-                recentBills: bills.slice(0, 15)
+                recentBills: bills
             });
         } else {
             return res.json({
