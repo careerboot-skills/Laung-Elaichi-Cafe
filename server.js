@@ -1,3 +1,33 @@
+{
+  "name": "laung-elaichi-cafe-pos",
+  "version": "1.0.0",
+  "description": "Premium Billing POS, Accounting, Daily Tally & SOH Inventory Web Application for Laung Elaichi Cafe",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mongoose": "^8.3.1",
+    "pdfkit": "^0.15.0",
+    "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
+```[cite: 4]
+
+---
+
+### 2. `server.js`
+```javascript
 /**
  * THE BANGLA LAUNG ELAICHI CAFE - COMPLETE POS & ACCOUNTING SERVER
  * Location: Bangla Chauraha, Beside Mahakal Kachori, Lucknow
@@ -235,7 +265,6 @@ app.post('/api/bills/create', async (req, res) => {
             const billDoc = new Bill(newBillData);
             savedBill = await billDoc.save();
 
-            // Deduct Stock
             for (let orderedItem of items) {
                 await InventoryItem.findOneAndUpdate(
                     { code: orderedItem.code },
