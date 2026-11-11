@@ -174,7 +174,7 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <button onclick="exportSOHExcel()" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 font-bold shadow-lg shadow-emerald-600/20">
-                        <i class="fa-solid fa-file-excel"></i> Export SOH Excel
+                        <i class="fa-solid fa-file-excel"></i> Export Detailed SOH Chart
                     </button>
                     <button onclick="openAddStockModal()" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 font-extrabold shadow-lg shadow-amber-500/20">
                         <i class="fa-solid fa-plus"></i> Add / Update Stock
@@ -370,7 +370,8 @@
                 <p class="text-xs text-slate-400" id="modal-inv-number">Invoice #BLEC-20261028-0001</p>
             </div>
             
-            <div class="bg-slate-950 p-4 rounded-xl font-mono text-xs text-slate-300 space-y-1 mb-4 max-h-60 overflow-y-auto border border-slate-800" id="modal-receipt-preview">
+            <!-- Perfectly Aligned Thermal Receipt Box -->
+            <div class="bg-slate-950 p-4 rounded-xl font-mono text-xs text-slate-300 space-y-1 mb-4 max-h-60 overflow-y-auto border border-slate-800" id="modal-receipt-preview" style="font-family: 'Courier New', Courier, monospace; white-space: pre; line-height: 1.4;">
                 <!-- Receipt Preview -->
             </div>
 
@@ -520,7 +521,6 @@
             document.getElementById('live-clock').innerText = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
         }
 
-        // Switch Top Level Tabs
         function switchMainTab(tab) {
             ['pos', 'accounting', 'inventory'].forEach(t => {
                 document.getElementById(`view-${t === 'pos' ? 'pos-container' : t}`).classList.add('hidden');
@@ -563,7 +563,6 @@
             }
         }
 
-        // --- STEP FLOW NAVIGATION ---
         function proceedToCategoryStep() {
             const nameInput = document.getElementById('step1-name').value.trim();
             const phoneInput = document.getElementById('step1-phone').value.trim();
@@ -600,7 +599,6 @@
             document.getElementById('pos-step-2').classList.add('flex');
         }
 
-        // --- MENU RENDERING ---
         function renderMenuForCategory(cat) {
             let itemsToDisplay = menuItems;
             if (cat !== 'all') {
@@ -646,7 +644,6 @@
             renderMenuGrid(filtered);
         }
 
-        // --- CART MANAGEMENT ---
         function addToCart(code) {
             const item = menuItems.find(i => i.code === code);
             if (!item) return;
@@ -739,7 +736,6 @@
             });
         }
 
-        // --- CHECKOUT & BILL CREATION ---
         async function checkoutOrder() {
             if (cart.length === 0) {
                 alert('Please add items to cart before checkout.');
@@ -788,35 +784,40 @@
             }
         }
 
+        // --- PERFECTLY ALIGNED THERMAL RECEIPT PREVIEW ---
         function showInvoiceModal(bill) {
             document.getElementById('modal-inv-number').innerText = `Invoice #${bill.invoiceNo}`;
             
-            let receiptHTML = `
-                <div class="text-center font-bold">THE BANGLA LAUNG ELAICHI CAFE</div>
-                <div class="text-[9px] text-center text-slate-400">Bangla Chauraha, Lucknow</div>
-                <div class="text-[9px] text-center text-amber-400">Helpline: 9005041462</div>
-                <div>----------------------------------------</div>
-                <div>Inv: ${bill.invoiceNo}</div>
-                <div>Date: ${new Date(bill.createdAt).toLocaleString()}</div>
-                <div>Customer: ${bill.customerName}</div>
-                <div>Phone: ${bill.customerPhone}</div>
-                <div>Payment: ${bill.paymentMethod}</div>
-                <div>----------------------------------------</div>
-                <div>Item            Qty   Price   Total</div>
-            `;
-            
+            let receipt = "";
+            receipt += "       THE BANGLA LAUNG ELAICHI CAFE       \n";
+            receipt += "    Bangla Chauraha, Beside Mahakal Kachori  \n";
+            receipt += "             Lucknow | 9005041462          \n";
+            receipt += "-------------------------------------------\n";
+            receipt += `Inv No   : ${bill.invoiceNo.padEnd(28)}\n`;
+            receipt += `Date     : ${new Date(bill.createdAt).toLocaleString().padEnd(28)}\n`;
+            receipt += `Customer : ${bill.customerName.padEnd(28)}\n`;
+            receipt += `Phone    : ${bill.customerPhone.padEnd(28)}\n`;
+            receipt += `Payment  : ${bill.paymentMethod.padEnd(28)}\n`;
+            receipt += "-------------------------------------------\n";
+            receipt += "ITEM / VARIANT            QTY  PRICE  TOTAL\n";
+            receipt += "-------------------------------------------\n";
+
             bill.items.forEach(i => {
-                receiptHTML += `<div>${i.name.substring(0, 12).padEnd(13)} ${i.qty.toString().padStart(2)}   ₹${i.price.toString().padStart(3)}   ₹${i.total}</div>`;
+                let nameVar = `${i.name} (${i.variant})`;
+                if (nameVar.length > 24) nameVar = nameVar.substring(0, 23) + ".";
+                let qtyStr = i.qty.toString().padStart(3);
+                let priceStr = i.price.toString().padStart(6);
+                let totalStr = i.total.toString().padStart(6);
+                receipt += `${nameVar.padEnd(24)}${qtyStr} ${priceStr} ${totalStr}\n`;
             });
 
-            receiptHTML += `
-                <div>----------------------------------------</div>
-                <div class="text-right font-bold text-amber-400">GRAND TOTAL: ₹${bill.grandTotal}</div>
-                <div>----------------------------------------</div>
-                <div class="text-center italic text-[9px]">Thank You! Visit Again!</div>
-            `;
+            receipt += "-------------------------------------------\n";
+            receipt += `GRAND TOTAL:                          ₹${bill.grandTotal.toFixed(2).padStart(8)}\n`;
+            receipt += "-------------------------------------------\n";
+            receipt += "      Thank You! Please Visit Again!       \n";
+            receipt += "     Sukoon Ki Har Ghoont, Aapke Naam.     \n";
 
-            document.getElementById('modal-receipt-preview').innerHTML = receiptHTML;
+            document.getElementById('modal-receipt-preview').innerText = receipt;
             document.getElementById('invoice-modal').classList.remove('hidden');
         }
 
@@ -825,9 +826,9 @@
         }
 
         function printThermalInvoice() {
-            const printContent = document.getElementById('modal-receipt-preview').innerHTML;
+            const printContent = document.getElementById('modal-receipt-preview').innerText;
             const originalBody = document.body.innerHTML;
-            document.body.innerHTML = `<div style="font-family: monospace; width: 280px; padding: 10px;">${printContent}</div>`;
+            document.body.innerHTML = `<pre style="font-family: 'Courier New', monospace; font-size: 11px; width: 280px; padding: 10px;">${printContent}</pre>`;
             window.print();
             document.body.innerHTML = originalBody;
             location.reload();
@@ -843,7 +844,6 @@
             document.getElementById('pos-step-1').classList.remove('hidden');
         }
 
-        // --- ACCOUNTANCY REPORTS, DAILY TALLY & EXCEL CHART EXPORT ---
         async function loadAccountingReports() {
             try {
                 const res = await fetch('/api/reports/summary');
@@ -924,6 +924,7 @@
             closeDailyTallyModal();
         }
 
+        // --- ENHANCED STYLIZED EXCEL EXPORT CHART FOR LEDGER (WITH KPIS & DAILY BALANCE) ---
         function exportLedgerExcel() {
             if (!accountancyBills || accountancyBills.length === 0) {
                 alert('No ledger records available to export.');
@@ -941,29 +942,38 @@
                     <meta charset="utf-8">
                     <style>
                         table { border-collapse: collapse; width: 100%; font-family: 'Plus Jakarta Sans', Arial, sans-serif; }
-                        th { background-color: #d97706; color: #ffffff; font-weight: bold; text-align: center; padding: 10px; border: 1px solid #b45309; }
-                        td { padding: 8px; border: 1px solid #cbd5e1; text-align: left; font-size: 11pt; }
-                        .title { font-size: 16pt; font-weight: bold; color: #78350f; text-align: center; margin-bottom: 5px; }
-                        .subtitle { font-size: 10pt; color: #64748b; text-align: center; margin-bottom: 15px; }
-                        .kpi-table td { background-color: #fffbeb; font-weight: bold; text-align: center; border: 2px solid #f59e0b; color: #78350f; padding: 10px; }
+                        th { background-color: #d97706; color: #ffffff; font-weight: bold; text-align: center; padding: 12px; border: 1px solid #b45309; font-size: 11pt; }
+                        td { padding: 9px; border: 1px solid #cbd5e1; text-align: left; font-size: 10.5pt; }
+                        .title { font-size: 18pt; font-weight: bold; color: #78350f; text-align: center; margin-bottom: 5px; }
+                        .subtitle { font-size: 10pt; color: #64748b; text-align: center; margin-bottom: 20px; }
+                        .kpi-th { background-color: #f59e0b; color: #451a03; font-weight: bold; text-align: center; padding: 8px; border: 1px solid #d97706; font-size: 10pt; }
+                        .kpi-td { background-color: #fef3c7; color: #78350f; font-weight: bold; text-align: center; padding: 10px; border: 1px solid #f59e0b; font-size: 12pt; }
                         .amount { text-align: right; font-weight: bold; color: #b45309; }
                     </style>
                 </head>
                 <body>
-                    <div class="title">THE BANGLA LAUNG ELAICHI CAFE - ACCOUNTANCY LEDGER & KPI REPORT</div>
-                    <div class="subtitle">Generated on: ${new Date().toLocaleString()} | Bangla Chauraha, Lucknow</div>
+                    <div class="title">THE BANGLA LAUNG ELAICHI CAFE - EXECUTIVE ACCOUNTANCY CHART</div>
+                    <div class="subtitle">Generated on: ${new Date().toLocaleString()} | Location: Bangla Chauraha, Lucknow</div>
                     
-                    <!-- KPI SUMMARY TABLE -->
-                    <table class="kpi-table" style="margin-bottom: 20px;">
+                    <!-- KPI EXECUTIVE DASHBOARD BLOCK -->
+                    <table style="margin-bottom: 25px;">
                         <tr>
-                            <td>TOTAL REVENUE: ₹${totalRev.toFixed(2)}</td>
-                            <td>TOTAL BILLS: ${accountancyBills.length}</td>
-                            <td>CASH COLL: ₹${cashRev.toFixed(2)}</td>
-                            <td>UPI / CARD: ₹${(upiRev + cardRev).toFixed(2)}</td>
-                            <td>TODAY'S CLOSING BAL: ₹${totalRev.toFixed(2)}</td>
+                            <th class="kpi-th">TOTAL REVENUE</th>
+                            <th class="kpi-th">TOTAL BILLS</th>
+                            <th class="kpi-th">CASH DRAWER</th>
+                            <th class="kpi-th">UPI / DIGITAL</th>
+                            <th class="kpi-th">TODAY'S CLOSING BAL</th>
+                        </tr>
+                        <tr>
+                            <td class="kpi-td">₹${totalRev.toFixed(2)}</td>
+                            <td class="kpi-td">${accountancyBills.length}</td>
+                            <td class="kpi-td">₹${cashRev.toFixed(2)}</td>
+                            <td class="kpi-td">₹${(upiRev + cardRev).toFixed(2)}</td>
+                            <td class="kpi-td" style="color: #047857;">₹${totalRev.toFixed(2)}</td>
                         </tr>
                     </table>
 
+                    <!-- MAIN TRANSACTION LEDGER TABLE -->
                     <table>
                         <thead>
                             <tr>
@@ -982,10 +992,10 @@
             accountancyBills.forEach(b => {
                 html += `
                     <tr>
-                        <td style="font-weight: bold; color: #b45309;">${b.invoiceNo}</td>
+                        <td style="font-weight: bold; color: #b45309; text-align: center;">${b.invoiceNo}</td>
                         <td>${new Date(b.createdAt).toLocaleString()}</td>
                         <td>${b.customerName}</td>
-                        <td>${b.customerPhone || 'N/A'}</td>
+                        <td style="text-align: center;">${b.customerPhone || 'N/A'}</td>
                         <td style="text-align: center; font-weight: bold;">${b.paymentMethod}</td>
                         <td class="amount">₹${b.subtotal.toFixed(2)}</td>
                         <td class="amount">₹${b.grandTotal.toFixed(2)}</td>
@@ -994,9 +1004,9 @@
             });
 
             html += `
-                        <tr style="background-color: #fef3c7; font-weight: bold;">
-                            <td colspan="6" style="text-align: right; padding: 10px;">DAILY CLOSING BALANCE (TOTAL REVENUE):</td>
-                            <td class="amount" style="font-size: 12pt;">₹${totalRev.toFixed(2)}</td>
+                        <tr style="background-color: #fef3c7; font-weight: bold; border-top: 2px solid #d97706;">
+                            <td colspan="6" style="text-align: right; padding: 12px; font-size: 11pt;">DAILY CLOSING BALANCE:</td>
+                            <td class="amount" style="font-size: 13pt; color: #047857;">₹${totalRev.toFixed(2)}</td>
                         </tr>
                         </tbody>
                     </table>
@@ -1008,13 +1018,12 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.href = url;
-            link.download = `Accountancy_Ledger_KPI_Chart_${new Date().toISOString().slice(0, 10)}.xls`;
+            link.download = `Accountancy_Ledger_Executive_Chart_${new Date().toISOString().slice(0, 10)}.xls`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
 
-        // --- INVENTORY & SOH MANAGEMENT ---
         function renderInventoryTable() {
             const tbody = document.getElementById('inventory-table-body');
             tbody.innerHTML = '';
@@ -1101,11 +1110,16 @@
             }
         }
 
+        // --- ENHANCED STYLIZED EXCEL EXPORT CHART FOR INVENTORY / SOH ---
         function exportSOHExcel() {
             if (!inventoryList || inventoryList.length === 0) {
                 alert('No inventory available to export.');
                 return;
             }
+
+            let totalItemsCount = inventoryList.length;
+            let totalStockUnits = inventoryList.reduce((acc, i) => acc + i.stock, 0);
+            let totalValuation = inventoryList.reduce((acc, i) => acc + (i.stock * (i.unitPrice ?? i.price)), 0);
 
             let html = `
                 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
@@ -1113,17 +1127,34 @@
                     <meta charset="utf-8">
                     <style>
                         table { border-collapse: collapse; width: 100%; font-family: 'Plus Jakarta Sans', Arial, sans-serif; }
-                        th { background-color: #047857; color: #ffffff; font-weight: bold; text-align: center; padding: 10px; border: 1px solid #065f46; }
-                        td { padding: 8px; border: 1px solid #cbd5e1; text-align: left; font-size: 11pt; }
-                        .title { font-size: 16pt; font-weight: bold; color: #065f46; text-align: center; margin-bottom: 5px; }
+                        th { background-color: #047857; color: #ffffff; font-weight: bold; text-align: center; padding: 12px; border: 1px solid #065f46; font-size: 11pt; }
+                        td { padding: 9px; border: 1px solid #cbd5e1; text-align: left; font-size: 10.5pt; }
+                        .title { font-size: 18pt; font-weight: bold; color: #065f46; text-align: center; margin-bottom: 5px; }
                         .subtitle { font-size: 10pt; color: #64748b; text-align: center; margin-bottom: 20px; }
+                        .kpi-th { background-color: #10b981; color: #ffffff; font-weight: bold; text-align: center; padding: 8px; border: 1px solid #047857; font-size: 10pt; }
+                        .kpi-td { background-color: #ecfdf5; color: #065f46; font-weight: bold; text-align: center; padding: 10px; border: 1px solid #10b981; font-size: 12pt; }
                         .number { text-align: right; }
                         .center { text-align: center; font-weight: bold; }
                     </style>
                 </head>
                 <body>
-                    <div class="title">THE BANGLA LAUNG ELAICHI CAFE - STOCK ON HAND (SOH) REPORT</div>
-                    <div class="subtitle">Generated on: ${new Date().toLocaleString()} | Bangla Chauraha, Lucknow</div>
+                    <div class="title">THE BANGLA LAUNG ELAICHI CAFE - INVENTORY & SOH EXECUTIVE CHART</div>
+                    <div class="subtitle">Generated on: ${new Date().toLocaleString()} | Location: Bangla Chauraha, Lucknow</div>
+                    
+                    <!-- KPI SUMMARY TABLE -->
+                    <table style="margin-bottom: 25px;">
+                        <tr>
+                            <th class="kpi-th">TOTAL CATALOG ITEMS</th>
+                            <th class="kpi-th">TOTAL UNITS IN STOCK</th>
+                            <th class="kpi-th">TOTAL INVENTORY VALUATION</th>
+                        </tr>
+                        <tr>
+                            <td class="kpi-td">${totalItemsCount} Items</td>
+                            <td class="kpi-td">${totalStockUnits} Units</td>
+                            <td class="kpi-td" style="color: #047857;">₹${totalValuation.toFixed(2)}</td>
+                        </tr>
+                    </table>
+
                     <table>
                         <thead>
                             <tr>
@@ -1133,6 +1164,7 @@
                                 <th>Category</th>
                                 <th>Unit Price (₹)</th>
                                 <th>Current Stock (SOH)</th>
+                                <th>Total Valuation (₹)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1140,20 +1172,26 @@
 
             inventoryList.forEach(i => {
                 const price = i.unitPrice ?? i.price;
+                const valuation = i.stock * price;
                 const lowStockStyle = i.stock < 10 ? 'color: #dc2626; font-weight: bold;' : 'color: #047857; font-weight: bold;';
                 html += `
                     <tr>
-                        <td style="font-weight: bold; color: #065f46;">${i.code}</td>
+                        <td style="font-weight: bold; color: #065f46; text-align: center;">${i.code}</td>
                         <td>${i.name}</td>
                         <td>${i.variant}</td>
-                        <td style="text-transform: uppercase;">${i.category}</td>
+                        <td style="text-transform: uppercase; text-align: center;">${i.category}</td>
                         <td class="number">₹${price.toFixed(2)}</td>
                         <td class="center" style="${lowStockStyle}">${i.stock} Units</td>
+                        <td class="number" style="font-weight: bold; color: #047857;">₹${valuation.toFixed(2)}</td>
                     </tr>
                 `;
             });
 
             html += `
+                        <tr style="background-color: #ecfdf5; font-weight: bold; border-top: 2px solid #059669;">
+                            <td colspan="6" style="text-align: right; padding: 12px; font-size: 11pt;">TOTAL ASSET VALUATION:</td>
+                            <td class="number" style="font-size: 13pt; color: #047857;">₹${totalValuation.toFixed(2)}</td>
+                        </tr>
                         </tbody>
                     </table>
                 </body>
@@ -1164,7 +1202,7 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.href = url;
-            link.download = `Stock_On_Hand_Report_${new Date().toISOString().slice(0, 10)}.xls`;
+            link.download = `Stock_On_Hand_Executive_Chart_${new Date().toISOString().slice(0, 10)}.xls`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
