@@ -882,7 +882,6 @@
             document.getElementById('pos-step-1').classList.remove('hidden');
         }
 
-        // --- ACCOUNTANCY REPORTS & KPI DASHBOARD LOADING ---
         async function loadAccountingReports() {
             try {
                 const res = await fetch('/api/reports/summary');
@@ -893,19 +892,16 @@
                     paymentBreakdownData = data.paymentBreakdown || { CASH: 0, UPI: 0, CARD: 0 };
                     globalKpiStats = data.kpiStats || globalKpiStats;
                     
-                    // Render Day KPI
                     document.getElementById('kpi-day-rev').innerText = `₹${globalKpiStats.day.revenue.toFixed(2)}`;
                     document.getElementById('kpi-day-qty').innerText = globalKpiStats.day.qty;
                     document.getElementById('kpi-day-abv').innerText = `₹${globalKpiStats.day.abv.toFixed(0)}`;
                     document.getElementById('kpi-day-upt').innerText = globalKpiStats.day.upt.toFixed(1);
 
-                    // Render Week KPI
                     document.getElementById('kpi-week-rev').innerText = `₹${globalKpiStats.week.revenue.toFixed(2)}`;
                     document.getElementById('kpi-week-qty').innerText = globalKpiStats.week.qty;
                     document.getElementById('kpi-week-abv').innerText = `₹${globalKpiStats.week.abv.toFixed(0)}`;
                     document.getElementById('kpi-week-upt').innerText = globalKpiStats.week.upt.toFixed(1);
 
-                    // Render Month KPI
                     document.getElementById('kpi-month-rev').innerText = `₹${globalKpiStats.month.revenue.toFixed(2)}`;
                     document.getElementById('kpi-month-qty').innerText = globalKpiStats.month.qty;
                     document.getElementById('kpi-month-abv').innerText = `₹${globalKpiStats.month.abv.toFixed(0)}`;
@@ -974,7 +970,6 @@
             closeDailyTallyModal();
         }
 
-        // --- ENHANCED STYLIZED EXCEL EXPORT CHART FOR LEDGER (WITH Qty, ABV, UPT FOR DAY, WEEK, MONTH) ---
         function exportLedgerExcel() {
             if (!accountancyBills || accountancyBills.length === 0) {
                 alert('No ledger records available to export.');
@@ -1002,7 +997,6 @@
                     <div class="title">THE BANGLA LAUNG ELAICHI CAFE - EXECUTIVE ACCOUNTANCY & KPI CHART</div>
                     <div class="subtitle">Generated on: ${new Date().toLocaleString()} | Location: Bangla Chauraha, Lucknow</div>
                     
-                    <!-- KPI EXECUTIVE DASHBOARD BLOCK (DAY, WEEK, MONTH WITH Qty, ABV, UPT) -->
                     <table style="margin-bottom: 25px;">
                         <tr>
                             <th class="kpi-th">PERIOD</th>
@@ -1038,7 +1032,6 @@
                         </tr>
                     </table>
 
-                    <!-- MAIN TRANSACTION LEDGER TABLE -->
                     <table>
                         <thead>
                             <tr>
