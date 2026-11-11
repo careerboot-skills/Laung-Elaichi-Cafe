@@ -245,7 +245,7 @@ app.get('/api/loyalty/:phone', async (req, res) => {
 
 app.post('/api/bills/create', async (req, res) => {
     try {
-        const { customerName, customerPhone, paymentMethod, items, subtotal, tax, discount, grandTotal } = req.body;
+        const { customerName, customerPhone, paymentMethod, items, subtotal, tax, discount, grandTotal, redeemPoints } = req.body;
 
         if (!items || items.length === 0) {
             return res.status(400).json({ success: false, message: 'Cart cannot be empty.' });
@@ -281,13 +281,27 @@ app.post('/api/bills/create', async (req, res) => {
                 );
             }
 
-            // Automatically update customer loyalty spends upon bill creation
+            // Update Customer Spends & Deduct points if user chose to redeem
             if (customerPhone && customerPhone !== 'N/A' && customerPhone.length >= 10) {
+                let existingCustomer = await CustomerLoyalty.findOne({ phone: customerPhone });
+                let currentSpends = existingCustomer ? existingCustomer.totalSpends : 0;
+                
+                // Calculate points used if redeemed
+                let pointsDeductedValue = 0;
+                if (redeemPoints && discount > 0) {
+                    pointsDeductedValue = discount * 25 * 50; // Reverse formula: discount * 25 = points, points * 50 = spends equivalent deducted
+                }
+
+                const updatedSpends = Math.max(0, currentSpends - pointsDeductedValue) + grandTotal;
+
                 await CustomerLoyalty.findOneAndUpdate(
                     { phone: customerPhone },
                     { 
-                        $set: { name: customerName || 'Valued Guest', lastUpdated: new Date() },
-                        $inc: { totalSpends: grandTotal }
+                        $set: { 
+                            name: customerName || 'Valued Guest', 
+                            totalSpends: updatedSpends,
+                            lastUpdated: new Date() 
+                        }
                     },
                     { upsert: true, new: true }
                 );
