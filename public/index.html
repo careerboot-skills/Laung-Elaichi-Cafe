@@ -357,18 +357,14 @@
                             </div>
                         </div>
 
-                        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 space-y-1.5 mb-3 text-xs">
+                        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 space-y-2 mb-3 text-xs">
                             <div class="flex justify-between text-slate-400">
                                 <span>Subtotal</span>
                                 <span id="bill-subtotal">₹0.00</span>
                             </div>
-                            <div class="flex justify-between text-slate-400">
-                                <span>Taxes & Charges (0%)</span>
-                                <span>₹0.00</span>
-                            </div>
-                            <div class="flex justify-between text-slate-400">
-                                <span>Discount</span>
-                                <span>-₹0.00</span>
+                            <div class="flex justify-between text-slate-400 items-center">
+                                <span class="flex items-center gap-1 text-amber-400"><i class="fa-solid fa-tag"></i> Markdown / Discount (₹)</span>
+                                <input type="number" id="bill-discount-input" value="0" oninput="renderCart()" class="w-20 bg-slate-950 border border-slate-700 rounded px-2 py-1 text-right text-white font-bold focus:outline-none focus:border-amber-500">
                             </div>
                             <div class="border-t border-slate-800 pt-1.5 flex justify-between font-bold text-sm text-amber-400">
                                 <span>Grand Total</span>
@@ -404,7 +400,6 @@
                 <p class="text-xs text-slate-400" id="modal-inv-number">Invoice #BLEC-20261111-0001</p>
             </div>
             
-            <!-- Perfectly Aligned Thermal Receipt Box -->
             <div class="bg-slate-950 p-4 rounded-xl text-xs text-slate-300 space-y-1 mb-4 max-h-60 overflow-y-auto border border-slate-800" id="modal-receipt-preview" style="font-family: 'Courier New', Courier, monospace; white-space: pre; line-height: 1.4;">
                 <!-- Receipt Preview -->
             </div>
@@ -759,8 +754,11 @@
                 container.appendChild(div);
             });
 
+            const discount = parseFloat(document.getElementById('bill-discount-input')?.value || 0);
+            const grandTotal = Math.max(0, subtotal - discount);
+
             document.getElementById('bill-subtotal').innerText = `₹${subtotal.toFixed(2)}`;
-            document.getElementById('bill-grand-total').innerText = `₹${subtotal.toFixed(2)}`;
+            document.getElementById('bill-grand-total').innerText = `₹${grandTotal.toFixed(2)}`;
         }
 
         function setPaymentMethod(method) {
@@ -782,6 +780,8 @@
             }
 
             const subtotal = cart.reduce((acc, i) => acc + i.total, 0);
+            const discount = parseFloat(document.getElementById('bill-discount-input')?.value || 0);
+            const grandTotal = Math.max(0, subtotal - discount);
 
             const orderPayload = {
                 customerName: currentCustomer.name,
@@ -790,8 +790,8 @@
                 items: cart,
                 subtotal,
                 tax: 0,
-                discount: 0,
-                grandTotal: subtotal
+                discount,
+                grandTotal
             };
 
             try {
@@ -818,7 +818,9 @@
                     customerPhone: currentCustomer.phone,
                     paymentMethod: selectedPayment,
                     items: [...cart],
-                    grandTotal: subtotal
+                    subtotal,
+                    discount,
+                    grandTotal
                 });
             }
         }
@@ -850,6 +852,9 @@
             });
 
             receipt += "-------------------------------------------\n";
+            if (bill.discount > 0) {
+                receipt += `Markdown/Disc :                     -₹${bill.discount.toFixed(2).padStart(7)}\n`;
+            }
             receipt += `GRAND TOTAL:                          ₹${bill.grandTotal.toFixed(2).padStart(8)}\n`;
             receipt += "-------------------------------------------\n";
             receipt += "      Thank You! Please Visit Again!       \n";
@@ -878,6 +883,7 @@
             renderCart();
             document.getElementById('step1-name').value = '';
             document.getElementById('step1-phone').value = '';
+            document.getElementById('bill-discount-input').value = '0';
             document.getElementById('pos-step-3').classList.add('hidden');
             document.getElementById('pos-step-1').classList.remove('hidden');
         }
