@@ -362,9 +362,16 @@
                                 <span>Subtotal</span>
                                 <span id="bill-subtotal">₹0.00</span>
                             </div>
-                            <div class="flex justify-between text-slate-400 items-center">
-                                <span class="flex items-center gap-1 text-amber-400"><i class="fa-solid fa-tag"></i> Markdown / Discount (₹)</span>
-                                <input type="number" id="bill-discount-input" value="0" oninput="renderCart()" class="w-20 bg-slate-950 border border-slate-700 rounded px-2 py-1 text-right text-white font-bold focus:outline-none focus:border-amber-500">
+                            <!-- Automated Loyalty Points & Discount Box -->
+                            <div class="bg-amber-500/10 border border-amber-500/30 rounded-lg p-2 space-y-1">
+                                <div class="flex justify-between items-center text-amber-400 font-bold">
+                                    <span class="flex items-center gap-1"><i class="fa-solid fa-coins"></i> Loyalty Points:</span>
+                                    <span id="loyalty-points-display">0 pts</span>
+                                </div>
+                                <div class="flex justify-between items-center text-slate-300">
+                                    <span>Auto Discount (₹):</span>
+                                    <input type="number" id="bill-discount-input" value="0" readonly class="w-20 bg-slate-950 border border-slate-700 rounded px-2 py-1 text-right text-emerald-400 font-bold focus:outline-none">
+                                </div>
                             </div>
                             <div class="border-t border-slate-800 pt-1.5 flex justify-between font-bold text-sm text-amber-400">
                                 <span>Grand Total</span>
@@ -534,6 +541,7 @@
         let currentCategoryFilter = 'all';
         let activeInvoiceNo = '';
         let currentCustomer = { name: 'Walk-in Guest', phone: 'N/A' };
+        let customerLoyaltyData = { totalSpends: 0, points: 0, discountableAmt: 0 };
 
         document.addEventListener('DOMContentLoaded', () => {
             updateClock();
@@ -597,15 +605,36 @@
             }
         }
 
-        function proceedToCategoryStep() {
+        async function proceedToCategoryStep() {
             const nameInput = document.getElementById('step1-name').value.trim();
             const phoneInput = document.getElementById('step1-phone').value.trim();
 
             currentCustomer.name = nameInput || 'Walk-in Guest';
             currentCustomer.phone = phoneInput || 'N/A';
 
-            document.getElementById('active-customer-badge').innerText = `Customer: ${currentCustomer.name} (${currentCustomer.phone})`;
-            document.getElementById('cart-cust-summary').innerText = `Customer: ${currentCustomer.name} | Ph: ${currentCustomer.phone}`;
+            // Automatic Loyalty Points Lookup
+            if (phoneInput && phoneInput.length >= 10) {
+                try {
+                    const res = await fetch(`/api/loyalty/${phoneInput}`);
+                    const data = await res.json();
+                    if (data.success) {
+                        customerLoyaltyData = data;
+                        if (!nameInput && data.customerName) {
+                            currentCustomer.name = data.customerName;
+                        }
+                    }
+                } catch (e) {
+                    console.log('Loyalty fetch offline fallback');
+                }
+            } else {
+                customerLoyaltyData = { totalSpends: 0, points: 0, discountableAmt: 0 };
+            }
+
+            document.getElementById('active-customer-badge').innerText = `Customer: ${currentCustomer.name} (${currentCustomer.phone}) | Pts: ${customerLoyaltyData.points}`;
+            document.getElementById('cart-cust-summary').innerText = `Customer: ${currentCustomer.name} | Pts: ${customerLoyaltyData.points} (Auto Disc: ₹${customerLoyaltyData.discountableAmt})`;
+
+            document.getElementById('bill-discount-input').value = customerLoyaltyData.discountableAmt;
+            document.getElementById('loyalty-points-display').innerText = `${customerLoyaltyData.points} pts (Spends: ₹${customerLoyaltyData.totalSpends})`;
 
             document.getElementById('pos-step-1').classList.add('hidden');
             document.getElementById('pos-step-2').classList.remove('hidden');
@@ -625,6 +654,7 @@
             document.getElementById('pos-step-2').classList.add('hidden');
             document.getElementById('pos-step-2').classList.remove('flex');
             document.getElementById('pos-step-3').classList.remove('hidden');
+            renderCart();
         }
 
         function backToStep2() {
@@ -754,7 +784,7 @@
                 container.appendChild(div);
             });
 
-            const discount = parseFloat(document.getElementById('bill-discount-input')?.value || 0);
+            const discount = parseFloat(document.getElementById('bill-discount-input')?.value || customerLoyaltyData.discountableAmt || 0);
             const grandTotal = Math.max(0, subtotal - discount);
 
             document.getElementById('bill-subtotal').innerText = `₹${subtotal.toFixed(2)}`;
@@ -780,7 +810,7 @@
             }
 
             const subtotal = cart.reduce((acc, i) => acc + i.total, 0);
-            const discount = parseFloat(document.getElementById('bill-discount-input')?.value || 0);
+            const discount = parseFloat(document.getElementById('bill-discount-input')?.value || customerLoyaltyData.discountableAmt || 0);
             const grandTotal = Math.max(0, subtotal - discount);
 
             const orderPayload = {
@@ -853,7 +883,7 @@
 
             receipt += "-------------------------------------------\n";
             if (bill.discount > 0) {
-                receipt += `Markdown/Disc :                     -₹${bill.discount.toFixed(2).padStart(7)}\n`;
+                receipt += `Loyalty Disc  :                     -₹${bill.discount.toFixed(2).padStart(7)}\n`;
             }
             receipt += `GRAND TOTAL:                          ₹${bill.grandTotal.toFixed(2).padStart(8)}\n`;
             receipt += "-------------------------------------------\n";
@@ -884,6 +914,7 @@
             document.getElementById('step1-name').value = '';
             document.getElementById('step1-phone').value = '';
             document.getElementById('bill-discount-input').value = '0';
+            customerLoyaltyData = { totalSpends: 0, points: 0, discountableAmt: 0 };
             document.getElementById('pos-step-3').classList.add('hidden');
             document.getElementById('pos-step-1').classList.remove('hidden');
         }
