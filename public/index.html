@@ -35,14 +35,6 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-amber-500 selection:text-slate-950">
 
-    <!-- Floating Background Accent -->
-    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0 opacity-20">
-        <div class="absolute top-10 left-10 text-5xl floating-sticker" style="animation-delay: 0s;">☕</div>
-        <div class="absolute top-20 right-20 text-5xl floating-sticker" style="animation-delay: 1s;">🥟</div>
-        <div class="absolute bottom-20 left-1/4 text-5xl floating-sticker" style="animation-delay: 2s;">🫖</div>
-        <div class="absolute bottom-10 right-1/3 text-5xl floating-sticker" style="animation-delay: 1.5s;">🔥</div>
-    </div>
-
     <!-- Top Navigation Bar -->
     <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50 px-4 py-3">
         <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
@@ -67,7 +59,7 @@
                         <i class="fa-solid fa-cash-register mr-1"></i> POS
                     </button>
                     <button onclick="switchMainTab('accounting')" id="nav-tab-accounting" class="px-3 py-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white">
-                        <i class="fa-solid fa-chart-pie mr-1"></i> Ledger & Tally
+                        <i class="fa-solid fa-chart-pie mr-1"></i> Ledger & KPIs
                     </button>
                     <button onclick="switchMainTab('inventory')" id="nav-tab-inventory" class="px-3 py-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white">
                         <i class="fa-solid fa-boxes-stacked mr-1"></i> Inventory & SOH
@@ -81,36 +73,78 @@
     <!-- Main Container -->
     <main class="flex-grow max-w-7xl w-full mx-auto p-4 relative z-10 flex flex-col">
 
-        <!-- ================================= ACCOUNTANCY LEDGER & TALLY TAB ================================= -->
+        <!-- ================================= ACCOUNTANCY LEDGER & KPI TAB ================================= -->
         <div id="view-accounting" class="hidden flex-col gap-6">
-            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                <div class="glass-card p-5 rounded-2xl flex items-center justify-between">
-                    <div>
-                        <p class="text-xs text-slate-400 uppercase font-semibold">Total Revenue</p>
-                        <h3 id="rep-total-revenue" class="text-2xl font-black text-amber-400 mt-1">₹0.00</h3>
+            <h2 class="text-lg font-black text-white flex items-center gap-2">
+                <i class="fa-solid fa-chart-line text-amber-500"></i> Accountancy Ledger & KPI Dashboard (Qty, ABV, UPT)
+            </h2>
+
+            <!-- KPI Cards Grid (Day, Week, Month) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- DAY KPI CARD -->
+                <div class="glass-card p-4 rounded-2xl border-l-4 border-amber-500 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold text-sm text-amber-400">Today's Performance (Day)</h3>
+                        <span class="text-xs bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-mono font-bold" id="kpi-day-rev">₹0.00</span>
                     </div>
-                    <div class="bg-amber-500/10 p-3.5 rounded-xl text-amber-500 text-xl"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                    <div class="grid grid-cols-3 gap-2 text-center pt-2 border-t border-slate-800 text-xs">
+                        <div class="bg-slate-900/80 p-2 rounded-xl">
+                            <p class="text-[10px] text-slate-400">Qty Sold</p>
+                            <p class="font-bold text-white text-sm" id="kpi-day-qty">0</p>
+                        </div>
+                        <div class="bg-slate-900/80 p-2 rounded-xl">
+                            <p class="text-[10px] text-slate-400">ABV</p>
+                            <p class="font-bold text-amber-400 text-sm" id="kpi-day-abv">₹0</p>
+                        </div>
+                        <div class="bg-slate-900/80 p-2 rounded-xl">
+                            <p class="text-[10px] text-slate-400">UPT</p>
+                            <p class="font-bold text-cyan-400 text-sm" id="kpi-day-upt">0.0</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="glass-card p-5 rounded-2xl flex items-center justify-between">
-                    <div>
-                        <p class="text-xs text-slate-400 uppercase font-semibold">Today's Balance</p>
-                        <h3 id="rep-todays-balance" class="text-2xl font-black text-emerald-400 mt-1">₹0.00</h3>
+
+                <!-- WEEK KPI CARD -->
+                <div class="glass-card p-4 rounded-2xl border-l-4 border-orange-500 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold text-sm text-orange-400">Past 7 Days (Week)</h3>
+                        <span class="text-xs bg-orange-500/10 text-orange-400 px-2 py-0.5 rounded font-mono font-bold" id="kpi-week-rev">₹0.00</span>
                     </div>
-                    <div class="bg-emerald-500/10 p-3.5 rounded-xl text-emerald-500 text-xl"><i class="fa-solid fa-scale-balanced"></i></div>
+                    <div class="grid grid-cols-3 gap-2 text-center pt-2 border-t border-slate-800 text-xs">
+                        <div class="bg-slate-900/80 p-2 rounded-xl">
+                            <p class="text-[10px] text-slate-400">Qty Sold</p>
+                            <p class="font-bold text-white text-sm" id="kpi-week-qty">0</p>
+                        </div>
+                        <div class="bg-slate-900/80 p-2 rounded-xl">
+                            <p class="text-[10px] text-slate-400">ABV</p>
+                            <p class="font-bold text-orange-400 text-sm" id="kpi-week-abv">₹0</p>
+                        </div>
+                        <div class="bg-slate-900/80 p-2 rounded-xl">
+                            <p class="text-[10px] text-slate-400">UPT</p>
+                            <p class="font-bold text-cyan-400 text-sm" id="kpi-week-upt">0.0</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="glass-card p-5 rounded-2xl flex items-center justify-between">
-                    <div>
-                        <p class="text-xs text-slate-400 uppercase font-semibold">Total Bills Generated</p>
-                        <h3 id="rep-total-bills" class="text-2xl font-black text-orange-400 mt-1">0</h3>
+
+                <!-- MONTH KPI CARD -->
+                <div class="glass-card p-4 rounded-2xl border-l-4 border-emerald-500 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold text-sm text-emerald-400">Current Month (Month)</h3>
+                        <span class="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-mono font-bold" id="kpi-month-rev">₹0.00</span>
                     </div>
-                    <div class="bg-orange-500/10 p-3.5 rounded-xl text-orange-500 text-xl"><i class="fa-solid fa-file-invoice-dollar"></i></div>
-                </div>
-                <div class="glass-card p-5 rounded-2xl flex items-center justify-between">
-                    <div>
-                        <p class="text-xs text-slate-400 uppercase font-semibold">Primary Payment Mode</p>
-                        <h3 id="rep-top-payment" class="text-xl font-bold text-cyan-400 mt-1">UPI</h3>
+                    <div class="grid grid-cols-3 gap-2 text-center pt-2 border-t border-slate-800 text-xs">
+                        <div class="bg-slate-900/80 p-2 rounded-xl">
+                            <p class="text-[10px] text-slate-400">Qty Sold</p>
+                            <p class="font-bold text-white text-sm" id="kpi-month-qty">0</p>
+                        </div>
+                        <div class="bg-slate-900/80 p-2 rounded-xl">
+                            <p class="text-[10px] text-slate-400">ABV</p>
+                            <p class="font-bold text-emerald-400 text-sm" id="kpi-month-abv">₹0</p>
+                        </div>
+                        <div class="bg-slate-900/80 p-2 rounded-xl">
+                            <p class="text-[10px] text-slate-400">UPT</p>
+                            <p class="font-bold text-cyan-400 text-sm" id="kpi-month-upt">0.0</p>
+                        </div>
                     </div>
-                    <div class="bg-cyan-500/10 p-3.5 rounded-xl text-cyan-500 text-xl"><i class="fa-solid fa-wallet"></i></div>
                 </div>
             </div>
 
@@ -134,7 +168,7 @@
                     </h3>
                     <div class="flex items-center gap-2">
                         <button onclick="exportLedgerExcel()" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-lg shadow-emerald-600/20 font-bold">
-                            <i class="fa-solid fa-file-excel"></i> Export Excel Chart (KPIs & Balance)
+                            <i class="fa-solid fa-file-excel"></i> Export Excel Chart (KPIs & Closing Bal)
                         </button>
                         <button onclick="loadAccountingReports()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-xl transition-all flex items-center gap-1.5">
                             <i class="fa-solid fa-rotate-right"></i> Refresh
@@ -367,11 +401,11 @@
                     <i class="fa-solid fa-check"></i>
                 </div>
                 <h3 class="text-lg font-bold text-white">Order Completed Successfully!</h3>
-                <p class="text-xs text-slate-400" id="modal-inv-number">Invoice #BLEC-20261028-0001</p>
+                <p class="text-xs text-slate-400" id="modal-inv-number">Invoice #BLEC-20261111-0001</p>
             </div>
             
             <!-- Perfectly Aligned Thermal Receipt Box -->
-            <div class="bg-slate-950 p-4 rounded-xl font-mono text-xs text-slate-300 space-y-1 mb-4 max-h-60 overflow-y-auto border border-slate-800" id="modal-receipt-preview" style="font-family: 'Courier New', Courier, monospace; white-space: pre; line-height: 1.4;">
+            <div class="bg-slate-950 p-4 rounded-xl text-xs text-slate-300 space-y-1 mb-4 max-h-60 overflow-y-auto border border-slate-800" id="modal-receipt-preview" style="font-family: 'Courier New', Courier, monospace; white-space: pre; line-height: 1.4;">
                 <!-- Receipt Preview -->
             </div>
 
@@ -495,6 +529,11 @@
         let inventoryList = [];
         let accountancyBills = [];
         let paymentBreakdownData = { CASH: 0, UPI: 0, CARD: 0 };
+        let globalKpiStats = {
+            day: { revenue: 0, bills: 0, qty: 0, abv: 0, upt: 0 },
+            week: { revenue: 0, bills: 0, qty: 0, abv: 0, upt: 0 },
+            month: { revenue: 0, bills: 0, qty: 0, abv: 0, upt: 0 }
+        };
         let cart = [];
         let selectedPayment = 'UPI';
         let currentCategoryFilter = 'all';
@@ -507,7 +546,7 @@
             loadMenuAndInventory();
             loadAccountingReports();
 
-            socket.on('new-bill-created', (bill) => {
+            socket.on('new-bill-created', () => {
                 loadAccountingReports();
                 loadMenuAndInventory();
             });
@@ -784,7 +823,6 @@
             }
         }
 
-        // --- PERFECTLY ALIGNED THERMAL RECEIPT PREVIEW ---
         function showInvoiceModal(bill) {
             document.getElementById('modal-inv-number').innerText = `Invoice #${bill.invoiceNo}`;
             
@@ -844,6 +882,7 @@
             document.getElementById('pos-step-1').classList.remove('hidden');
         }
 
+        // --- ACCOUNTANCY REPORTS & KPI DASHBOARD LOADING ---
         async function loadAccountingReports() {
             try {
                 const res = await fetch('/api/reports/summary');
@@ -852,14 +891,25 @@
                 if (data.success && data.totalRevenue !== undefined) {
                     accountancyBills = data.recentBills || [];
                     paymentBreakdownData = data.paymentBreakdown || { CASH: 0, UPI: 0, CARD: 0 };
+                    globalKpiStats = data.kpiStats || globalKpiStats;
                     
-                    document.getElementById('rep-total-revenue').innerText = `₹${data.totalRevenue.toFixed(2)}`;
-                    document.getElementById('rep-total-bills').innerText = data.totalBills;
-                    document.getElementById('rep-todays-balance').innerText = `₹${data.totalRevenue.toFixed(2)}`;
+                    // Render Day KPI
+                    document.getElementById('kpi-day-rev').innerText = `₹${globalKpiStats.day.revenue.toFixed(2)}`;
+                    document.getElementById('kpi-day-qty').innerText = globalKpiStats.day.qty;
+                    document.getElementById('kpi-day-abv').innerText = `₹${globalKpiStats.day.abv.toFixed(0)}`;
+                    document.getElementById('kpi-day-upt').innerText = globalKpiStats.day.upt.toFixed(1);
 
-                    const payments = paymentBreakdownData;
-                    const topPay = Object.keys(payments).reduce((a, b) => payments[a] > payments[b] ? a : b, 'UPI');
-                    document.getElementById('rep-top-payment').innerText = `${topPay} (₹${payments[topPay]})`;
+                    // Render Week KPI
+                    document.getElementById('kpi-week-rev').innerText = `₹${globalKpiStats.week.revenue.toFixed(2)}`;
+                    document.getElementById('kpi-week-qty').innerText = globalKpiStats.week.qty;
+                    document.getElementById('kpi-week-abv').innerText = `₹${globalKpiStats.week.abv.toFixed(0)}`;
+                    document.getElementById('kpi-week-upt').innerText = globalKpiStats.week.upt.toFixed(1);
+
+                    // Render Month KPI
+                    document.getElementById('kpi-month-rev').innerText = `₹${globalKpiStats.month.revenue.toFixed(2)}`;
+                    document.getElementById('kpi-month-qty').innerText = globalKpiStats.month.qty;
+                    document.getElementById('kpi-month-abv').innerText = `₹${globalKpiStats.month.abv.toFixed(0)}`;
+                    document.getElementById('kpi-month-upt').innerText = globalKpiStats.month.upt.toFixed(1);
 
                     const tbody = document.getElementById('ledger-table-body');
                     tbody.innerHTML = '';
@@ -924,7 +974,7 @@
             closeDailyTallyModal();
         }
 
-        // --- ENHANCED STYLIZED EXCEL EXPORT CHART FOR LEDGER (WITH KPIS & DAILY BALANCE) ---
+        // --- ENHANCED STYLIZED EXCEL EXPORT CHART FOR LEDGER (WITH Qty, ABV, UPT FOR DAY, WEEK, MONTH) ---
         function exportLedgerExcel() {
             if (!accountancyBills || accountancyBills.length === 0) {
                 alert('No ledger records available to export.');
@@ -932,9 +982,6 @@
             }
 
             const totalRev = accountancyBills.reduce((acc, b) => acc + b.grandTotal, 0);
-            const cashRev = paymentBreakdownData.CASH || 0;
-            const upiRev = paymentBreakdownData.UPI || 0;
-            const cardRev = paymentBreakdownData.CARD || 0;
 
             let html = `
                 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
@@ -947,29 +994,47 @@
                         .title { font-size: 18pt; font-weight: bold; color: #78350f; text-align: center; margin-bottom: 5px; }
                         .subtitle { font-size: 10pt; color: #64748b; text-align: center; margin-bottom: 20px; }
                         .kpi-th { background-color: #f59e0b; color: #451a03; font-weight: bold; text-align: center; padding: 8px; border: 1px solid #d97706; font-size: 10pt; }
-                        .kpi-td { background-color: #fef3c7; color: #78350f; font-weight: bold; text-align: center; padding: 10px; border: 1px solid #f59e0b; font-size: 12pt; }
+                        .kpi-td { background-color: #fef3c7; color: #78350f; font-weight: bold; text-align: center; padding: 10px; border: 1px solid #f59e0b; font-size: 11pt; }
                         .amount { text-align: right; font-weight: bold; color: #b45309; }
                     </style>
                 </head>
                 <body>
-                    <div class="title">THE BANGLA LAUNG ELAICHI CAFE - EXECUTIVE ACCOUNTANCY CHART</div>
+                    <div class="title">THE BANGLA LAUNG ELAICHI CAFE - EXECUTIVE ACCOUNTANCY & KPI CHART</div>
                     <div class="subtitle">Generated on: ${new Date().toLocaleString()} | Location: Bangla Chauraha, Lucknow</div>
                     
-                    <!-- KPI EXECUTIVE DASHBOARD BLOCK -->
+                    <!-- KPI EXECUTIVE DASHBOARD BLOCK (DAY, WEEK, MONTH WITH Qty, ABV, UPT) -->
                     <table style="margin-bottom: 25px;">
                         <tr>
-                            <th class="kpi-th">TOTAL REVENUE</th>
-                            <th class="kpi-th">TOTAL BILLS</th>
-                            <th class="kpi-th">CASH DRAWER</th>
-                            <th class="kpi-th">UPI / DIGITAL</th>
-                            <th class="kpi-th">TODAY'S CLOSING BAL</th>
+                            <th class="kpi-th">PERIOD</th>
+                            <th class="kpi-th">REVENUE (₹)</th>
+                            <th class="kpi-th">BILLS</th>
+                            <th class="kpi-th">QTY SOLD</th>
+                            <th class="kpi-th">ABV (₹)</th>
+                            <th class="kpi-th">UPT</th>
                         </tr>
                         <tr>
-                            <td class="kpi-td">₹${totalRev.toFixed(2)}</td>
-                            <td class="kpi-td">${accountancyBills.length}</td>
-                            <td class="kpi-td">₹${cashRev.toFixed(2)}</td>
-                            <td class="kpi-td">₹${(upiRev + cardRev).toFixed(2)}</td>
-                            <td class="kpi-td" style="color: #047857;">₹${totalRev.toFixed(2)}</td>
+                            <td class="kpi-td" style="font-weight: bold;">TODAY (DAY)</td>
+                            <td class="kpi-td">₹${globalKpiStats.day.revenue.toFixed(2)}</td>
+                            <td class="kpi-td">${globalKpiStats.day.bills}</td>
+                            <td class="kpi-td">${globalKpiStats.day.qty}</td>
+                            <td class="kpi-td">₹${globalKpiStats.day.abv.toFixed(2)}</td>
+                            <td class="kpi-td">${globalKpiStats.day.upt.toFixed(2)}</td>
+                        </tr>
+                        <tr>
+                            <td class="kpi-td" style="font-weight: bold;">PAST 7 DAYS (WEEK)</td>
+                            <td class="kpi-td">₹${globalKpiStats.week.revenue.toFixed(2)}</td>
+                            <td class="kpi-td">${globalKpiStats.week.bills}</td>
+                            <td class="kpi-td">${globalKpiStats.week.qty}</td>
+                            <td class="kpi-td">₹${globalKpiStats.week.abv.toFixed(2)}</td>
+                            <td class="kpi-td">${globalKpiStats.week.upt.toFixed(2)}</td>
+                        </tr>
+                        <tr>
+                            <td class="kpi-td" style="font-weight: bold;">CURRENT MONTH</td>
+                            <td class="kpi-td">₹${globalKpiStats.month.revenue.toFixed(2)}</td>
+                            <td class="kpi-td">${globalKpiStats.month.bills}</td>
+                            <td class="kpi-td">${globalKpiStats.month.qty}</td>
+                            <td class="kpi-td">₹${globalKpiStats.month.abv.toFixed(2)}</td>
+                            <td class="kpi-td">${globalKpiStats.month.upt.toFixed(2)}</td>
                         </tr>
                     </table>
 
@@ -1018,7 +1083,7 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.href = url;
-            link.download = `Accountancy_Ledger_Executive_Chart_${new Date().toISOString().slice(0, 10)}.xls`;
+            link.download = `Accountancy_Ledger_KPI_Chart_${new Date().toISOString().slice(0, 10)}.xls`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -1110,7 +1175,6 @@
             }
         }
 
-        // --- ENHANCED STYLIZED EXCEL EXPORT CHART FOR INVENTORY / SOH ---
         function exportSOHExcel() {
             if (!inventoryList || inventoryList.length === 0) {
                 alert('No inventory available to export.');
@@ -1141,7 +1205,6 @@
                     <div class="title">THE BANGLA LAUNG ELAICHI CAFE - INVENTORY & SOH EXECUTIVE CHART</div>
                     <div class="subtitle">Generated on: ${new Date().toLocaleString()} | Location: Bangla Chauraha, Lucknow</div>
                     
-                    <!-- KPI SUMMARY TABLE -->
                     <table style="margin-bottom: 25px;">
                         <tr>
                             <th class="kpi-th">TOTAL CATALOG ITEMS</th>
