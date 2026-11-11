@@ -257,6 +257,7 @@ app.post('/api/bills/create', async (req, res) => {
     }
 });
 
+// Advanced Analytics API with Qty, ABV, UPT for Day, Week, and Month
 app.get('/api/reports/summary', async (req, res) => {
     try {
         if (mongoose.connection.readyState === 1) {
@@ -267,15 +268,57 @@ app.get('/api/reports/summary', async (req, res) => {
             let paymentBreakdown = { CASH: 0, UPI: 0, CARD: 0 };
             let itemSalesCount = {};
 
+            const now = new Date();
+            const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - 7);
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+            let kpiStats = {
+                day: { revenue: 0, bills: 0, qty: 0, abv: 0, upt: 0 },
+                week: { revenue: 0, bills: 0, qty: 0, abv: 0, upt: 0 },
+                month: { revenue: 0, bills: 0, qty: 0, abv: 0, upt: 0 }
+            };
+
             bills.forEach(bill => {
                 totalRevenue += bill.grandTotal;
                 if (paymentBreakdown[bill.paymentMethod] !== undefined) {
                     paymentBreakdown[bill.paymentMethod] += bill.grandTotal;
                 }
 
+                let billQty = 0;
                 bill.items.forEach(item => {
                     itemSalesCount[item.name] = (itemSalesCount[item.name] || 0) + item.qty;
+                    billQty += item.qty;
                 });
+
+                const bDate = new Date(bill.createdAt);
+
+                // Day KPI
+                if (bDate >= startOfToday) {
+                    kpiStats.day.revenue += bill.grandTotal;
+                    kpiStats.day.bills += 1;
+                    kpiStats.day.qty += billQty;
+                }
+                // Week KPI
+                if (bDate >= startOfWeek) {
+                    kpiStats.week.revenue += bill.grandTotal;
+                    kpiStats.week.bills += 1;
+                    kpiStats.week.qty += billQty;
+                }
+                // Month KPI
+                if (bDate >= startOfMonth) {
+                    kpiStats.month.revenue += bill.grandTotal;
+                    kpiStats.month.bills += 1;
+                    kpiStats.month.qty += billQty;
+                }
+            });
+
+            // Compute ABV and UPT for Day, Week, Month
+            ['day', 'week', 'month'].forEach(period => {
+                const p = kpiStats[period];
+                p.abv = p.bills > 0 ? p.revenue / p.bills : 0;
+                p.upt = p.bills > 0 ? p.qty / p.bills : 0;
             });
 
             return res.json({
@@ -284,6 +327,7 @@ app.get('/api/reports/summary', async (req, res) => {
                 totalBills,
                 paymentBreakdown,
                 itemSalesCount,
+                kpiStats,
                 recentBills: bills
             });
         } else {
@@ -297,7 +341,7 @@ app.get('/api/reports/summary', async (req, res) => {
     }
 });
 
-// Professional Structured Thermal PDF Invoice Generator Route
+// Fixed Single-Column Clean Thermal PDF Invoice Generator Route
 app.get('/api/bills/pdf/:invoiceNo', async (req, res) => {
     try {
         const { invoiceNo } = req.params;
@@ -309,23 +353,23 @@ app.get('/api/bills/pdf/:invoiceNo', async (req, res) => {
 
         if (!billData) {
             billData = {
-                invoiceNo: invoiceNo || 'BLEC-20261028-9999',
+                invoiceNo: invoiceNo || 'BLEC-20261111-9999',
                 createdAt: new Date(),
                 customerName: 'Walk-in Guest',
                 customerPhone: '9005041462',
-                paymentMethod: 'UPI',
+                paymentMethod: 'CASH',
                 items: [
-                    { name: 'Special Chai', variant: 'Kullad', price: 20, qty: 2, total: 40 },
-                    { name: 'Veg Steam Momo', variant: 'Full', price: 50, qty: 1, total: 50 }
+                    { name: 'Rajwadi Chai', variant: 'Royal Kullad', price: 125, qty: 1, total: 125 },
+                    { name: 'Veg Fry Momo', variant: 'Full', price: 170, qty: 1, total: 170 }
                 ],
-                subtotal: 90,
+                subtotal: 295,
                 tax: 0,
                 discount: 0,
-                grandTotal: 90
+                grandTotal: 295
             };
         }
 
-        const doc = new PDFDocument({ size: [226, 520], margin: 12 });
+        const doc = new PDFDocument({ size: [226, 600], margin: 10 });
 
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `inline; filename=Invoice_${billData.invoiceNo}.pdf`);
@@ -333,69 +377,53 @@ app.get('/api/bills/pdf/:invoiceNo', async (req, res) => {
         doc.pipe(res);
 
         // --- HEADER ---
-        doc.font('Helvetica-Bold').fontSize(11).text('THE BANGLA LAUNG ELAICHI CAFE', { align: 'center' });
+        doc.font('Helvetica-Bold').fontSize(10).text('THE BANGLA LAUNG ELAICHI CAFE', { align: 'center' });
         doc.font('Helvetica').fontSize(6.5).fillColor('#444444');
         doc.text('Bangla Chauraha, Beside Mahakal Kachori, Lucknow', { align: 'center' });
         doc.text('Helpline / Contact: 9005041462', { align: 'center' });
         doc.moveDown(0.4);
 
-        // --- INVOICE META & CONTACTS ---
+        // --- INVOICE META & CUSTOMER DETAILS ---
         doc.fillColor('#000000').fontSize(7).font('Helvetica-Bold');
-        doc.text(`INVOICE NO: ${billData.invoiceNo}`);
+        doc.text(`INVOICE NO : ${billData.invoiceNo}`);
         doc.font('Helvetica');
-        doc.text(`DATE: ${new Date(billData.createdAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}`);
-        doc.text(`CUSTOMER: ${billData.customerName}`);
-        doc.text(`CUST PHONE: ${billData.customerPhone || 'N/A'}`);
-        doc.text(`PAYMENT MODE: ${billData.paymentMethod}`);
+        doc.text(`DATE       : ${new Date(billData.createdAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}`);
+        doc.text(`CUSTOMER   : ${billData.customerName}`);
+        doc.text(`PHONE      : ${billData.customerPhone || 'N/A'}`);
+        doc.text(`PAYMENT    : ${billData.paymentMethod}`);
         doc.text('----------------------------------------------------------');
 
-        // --- TABLE HEADERS ---
-        doc.font('Helvetica-Bold').fontSize(7);
-        doc.text('ITEM / VARIANT', 12, doc.y, { continued: true });
-        doc.text('QTY', 115, doc.y, { continued: true, align: 'right' });
-        doc.text('PRICE', 150, doc.y, { continued: true, align: 'right' });
-        doc.text('TOTAL', 190, doc.y, { align: 'right' });
-        
-        doc.font('Helvetica').text('----------------------------------------------------------');
-
         // --- ITEMS LOOP ---
-        billData.items.forEach(item => {
-            const itemNameStr = `${item.name} (${item.variant})`;
-            doc.fontSize(7).font('Helvetica-Bold');
-            doc.text(itemNameStr, 12, doc.y);
+        billData.items.forEach((item, index) => {
+            doc.font('Helvetica-Bold').fontSize(7.5);
+            doc.text(`${index + 1}. ${item.name} (${item.variant})`);
             
-            doc.font('Helvetica');
-            doc.text(`${item.qty}`, 115, doc.y - 9, { align: 'right', width: 20 });
-            doc.text(`₹${item.price}`, 140, doc.y - 9, { align: 'right', width: 25 });
-            doc.text(`₹${item.total}`, 175, doc.y - 9, { align: 'right', width: 25 });
-            doc.moveDown(0.4);
+            doc.font('Helvetica').fontSize(7);
+            doc.text(`   Qty: ${item.qty}   |   Price: ₹${item.price}   |   Total: ₹${item.total}`, { align: 'right' });
+            doc.moveDown(0.2);
         });
 
         doc.text('----------------------------------------------------------');
 
         // --- TOTALS SECTION ---
-        const rightAlignX = 145;
-        doc.font('Helvetica');
-        doc.text(`Subtotal:`, 80, doc.y, { continued: true });
-        doc.text(`₹${billData.subtotal.toFixed(2)}`, rightAlignX, doc.y, { align: 'right', width: 55 });
-
+        doc.font('Helvetica').fontSize(7.5);
+        doc.text(`Subtotal      : ₹${billData.subtotal.toFixed(2)}`, { align: 'right' });
+        
         if (billData.discount > 0) {
-            doc.text(`Discount:`, 80, doc.y, { continued: true });
-            doc.text(`-₹${billData.discount.toFixed(2)}`, rightAlignX, doc.y, { align: 'right', width: 55 });
+            doc.text(`Discount      : -₹${billData.discount.toFixed(2)}`, { align: 'right' });
         }
 
         doc.moveDown(0.2);
-        doc.font('Helvetica-Bold').fontSize(9);
-        doc.text(`GRAND TOTAL:`, 60, doc.y, { continued: true });
-        doc.text(`₹${billData.grandTotal.toFixed(2)}`, rightAlignX - 10, doc.y, { align: 'right', width: 65 });
+        doc.font('Helvetica-Bold').fontSize(10);
+        doc.text(`GRAND TOTAL: ₹${billData.grandTotal.toFixed(2)}`, { align: 'right' });
         
         doc.font('Helvetica').fontSize(7);
         doc.text('----------------------------------------------------------');
-        doc.moveDown(0.3);
+        doc.moveDown(0.4);
 
         // --- FOOTER ---
-        doc.font('Helvetica-Bold').fontSize(7.5).text('Thank You! Please Visit Again!', { align: 'center' });
-        doc.font('Helvetica-Oblique').fontSize(6).fillColor('#666666');
+        doc.font('Helvetica-Bold').fontSize(8).text('Thank You! Please Visit Again!', { align: 'center' });
+        doc.font('Helvetica-Oblique').fontSize(6.5).fillColor('#666666');
         doc.text('Sukoon Ki Har Ghoont, Aapke Naam.', { align: 'center' });
 
         doc.end();
