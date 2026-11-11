@@ -75,6 +75,16 @@ const inventorySchema = new mongoose.Schema({
 
 const InventoryItem = mongoose.model('InventoryItem', inventorySchema);
 
+// Customer Loyalty Schema for Automated Spends & Points Tracking
+const customerLoyaltySchema = new mongoose.Schema({
+    phone: { type: String, required: true, unique: true },
+    name: { type: String, required: true },
+    totalSpends: { type: Number, default: 0 },
+    lastUpdated: { type: Date, default: Date.now }
+}, { timestamps: true });
+
+const CustomerLoyalty = mongoose.model('CustomerLoyalty', customerLoyaltySchema);
+
 // Synchronized Menu Inventory Data
 const INITIAL_MENU_DATA = [
     { code: "T10", name: "Sukoon Ki Chai", variant: "Regular", price: 10, category: "tea", stock: 100 },
@@ -204,6 +214,35 @@ app.post('/api/inventory/update', async (req, res) => {
     }
 });
 
+// Automated Loyalty Points & Discount Calculation API
+app.get('/api/loyalty/:phone', async (req, res) => {
+    try {
+        const phone = req.params.phone;
+        if (!phone || phone === 'N/A' || phone.length < 10) {
+            return res.json({ success: true, totalSpends: 0, points: 0, discountableAmt: 0 });
+        }
+
+        let customer = null;
+        if (mongoose.connection.readyState === 1) {
+            customer = await CustomerLoyalty.findOne({ phone });
+        }
+
+        const totalSpends = customer ? customer.totalSpends : 0;
+        const points = Math.floor(totalSpends / 50);
+        const discountableAmt = parseFloat((points / 25).toFixed(2));
+
+        res.json({
+            success: true,
+            customerName: customer ? customer.name : '',
+            totalSpends,
+            points,
+            discountableAmt
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error fetching loyalty record.' });
+    }
+});
+
 app.post('/api/bills/create', async (req, res) => {
     try {
         const { customerName, customerPhone, paymentMethod, items, subtotal, tax, discount, grandTotal } = req.body;
@@ -239,6 +278,18 @@ app.post('/api/bills/create', async (req, res) => {
                 await InventoryItem.findOneAndUpdate(
                     { code: orderedItem.code },
                     { $inc: { stock: -orderedItem.qty } }
+                );
+            }
+
+            // Automatically update customer loyalty spends upon bill creation
+            if (customerPhone && customerPhone !== 'N/A' && customerPhone.length >= 10) {
+                await CustomerLoyalty.findOneAndUpdate(
+                    { phone: customerPhone },
+                    { 
+                        $set: { name: customerName || 'Valued Guest', lastUpdated: new Date() },
+                        $inc: { totalSpends: grandTotal }
+                    },
+                    { upsert: true, new: true }
                 );
             }
         }
