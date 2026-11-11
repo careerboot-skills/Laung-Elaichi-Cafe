@@ -357,22 +357,28 @@
                             </div>
                         </div>
 
-                        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 space-y-2 mb-3 text-xs">
+                        <!-- Subtotal & Redemption Toggle Panel -->
+                        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 space-y-2.5 mb-3 text-xs">
                             <div class="flex justify-between text-slate-400">
                                 <span>Subtotal</span>
                                 <span id="bill-subtotal">₹0.00</span>
                             </div>
-                            <!-- Automated Loyalty Points & Discount Box -->
-                            <div class="bg-amber-500/10 border border-amber-500/30 rounded-lg p-2 space-y-1">
+
+                            <!-- Loyalty Points & Redemption Toggle Checkbox -->
+                            <div class="bg-amber-500/10 border border-amber-500/30 rounded-lg p-2.5 space-y-2">
                                 <div class="flex justify-between items-center text-amber-400 font-bold">
-                                    <span class="flex items-center gap-1"><i class="fa-solid fa-coins"></i> Loyalty Points:</span>
+                                    <span class="flex items-center gap-1"><i class="fa-solid fa-coins"></i> Available Points:</span>
                                     <span id="loyalty-points-display">0 pts</span>
                                 </div>
-                                <div class="flex justify-between items-center text-slate-300">
-                                    <span>Auto Discount (₹):</span>
-                                    <input type="number" id="bill-discount-input" value="0" readonly class="w-20 bg-slate-950 border border-slate-700 rounded px-2 py-1 text-right text-emerald-400 font-bold focus:outline-none">
+                                <div class="flex items-center justify-between pt-1 border-t border-amber-500/20">
+                                    <label class="flex items-center gap-2 cursor-pointer text-slate-200 font-semibold select-none">
+                                        <input type="checkbox" id="redeem-toggle" onchange="renderCart()" class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+                                        <span>Redeem Points (<span id="redeem-amount-label">₹0.00</span> Disc)</span>
+                                    </label>
+                                    <span class="text-[10px] text-slate-400 italic">Keep safe if unchecked</span>
                                 </div>
                             </div>
+
                             <div class="border-t border-slate-800 pt-1.5 flex justify-between font-bold text-sm text-amber-400">
                                 <span>Grand Total</span>
                                 <span id="bill-grand-total">₹0.00</span>
@@ -631,10 +637,13 @@
             }
 
             document.getElementById('active-customer-badge').innerText = `Customer: ${currentCustomer.name} (${currentCustomer.phone}) | Pts: ${customerLoyaltyData.points}`;
-            document.getElementById('cart-cust-summary').innerText = `Customer: ${currentCustomer.name} | Pts: ${customerLoyaltyData.points} (Auto Disc: ₹${customerLoyaltyData.discountableAmt})`;
+            document.getElementById('cart-cust-summary').innerText = `Customer: ${currentCustomer.name} | Pts: ${customerLoyaltyData.points} (Avail Disc: ₹${customerLoyaltyData.discountableAmt})`;
 
-            document.getElementById('bill-discount-input').value = customerLoyaltyData.discountableAmt;
-            document.getElementById('loyalty-points-display').innerText = `${customerLoyaltyData.points} pts (Spends: ₹${customerLoyaltyData.totalSpends})`;
+            document.getElementById('loyalty-points-display').innerText = `${customerLoyaltyData.points} pts`;
+            document.getElementById('redeem-amount-label').innerText = `₹${customerLoyaltyData.discountableAmt}`;
+            
+            // Default checkbox unchecked so points are kept safe unless customer asks to redeem
+            document.getElementById('redeem-toggle').checked = false;
 
             document.getElementById('pos-step-1').classList.add('hidden');
             document.getElementById('pos-step-2').classList.remove('hidden');
@@ -784,7 +793,8 @@
                 container.appendChild(div);
             });
 
-            const discount = parseFloat(document.getElementById('bill-discount-input')?.value || customerLoyaltyData.discountableAmt || 0);
+            const isRedeemChecked = document.getElementById('redeem-toggle')?.checked || false;
+            const discount = isRedeemChecked ? customerLoyaltyData.discountableAmt : 0;
             const grandTotal = Math.max(0, subtotal - discount);
 
             document.getElementById('bill-subtotal').innerText = `₹${subtotal.toFixed(2)}`;
@@ -810,7 +820,8 @@
             }
 
             const subtotal = cart.reduce((acc, i) => acc + i.total, 0);
-            const discount = parseFloat(document.getElementById('bill-discount-input')?.value || customerLoyaltyData.discountableAmt || 0);
+            const isRedeemChecked = document.getElementById('redeem-toggle')?.checked || false;
+            const discount = isRedeemChecked ? customerLoyaltyData.discountableAmt : 0;
             const grandTotal = Math.max(0, subtotal - discount);
 
             const orderPayload = {
@@ -821,7 +832,8 @@
                 subtotal,
                 tax: 0,
                 discount,
-                grandTotal
+                grandTotal,
+                redeemPoints: isRedeemChecked
             };
 
             try {
@@ -883,7 +895,7 @@
 
             receipt += "-------------------------------------------\n";
             if (bill.discount > 0) {
-                receipt += `Loyalty Disc  :                     -₹${bill.discount.toFixed(2).padStart(7)}\n`;
+                receipt += `Points Redeemed :                   -₹${bill.discount.toFixed(2).padStart(7)}\n`;
             }
             receipt += `GRAND TOTAL:                          ₹${bill.grandTotal.toFixed(2).padStart(8)}\n`;
             receipt += "-------------------------------------------\n";
@@ -913,7 +925,7 @@
             renderCart();
             document.getElementById('step1-name').value = '';
             document.getElementById('step1-phone').value = '';
-            document.getElementById('bill-discount-input').value = '0';
+            document.getElementById('redeem-toggle').checked = false;
             customerLoyaltyData = { totalSpends: 0, points: 0, discountableAmt: 0 };
             document.getElementById('pos-step-3').classList.add('hidden');
             document.getElementById('pos-step-1').classList.remove('hidden');
