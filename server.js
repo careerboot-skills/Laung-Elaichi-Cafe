@@ -1,5 +1,5 @@
 /**
- * THE BANGLA LAUNG ELAICHI CAFE - COMPLETE POS, ACCOUNTING & REWARDS SERVER
+ * THE BANGLA LAUNG ELAICHI CAFE - COMPLETE POS & ACCOUNTING SERVER
  * Location: Bangla Chauraha, Beside Mahakal Kachori, Lucknow
  * Contact: 9005041462
  * Tech Stack: Express, Socket.IO, Mongoose, PDFKit
@@ -39,15 +39,6 @@ app.use((req, res, next) => {
 // MONGODB SCHEMAS & MODELS
 // ==========================================
 
-const customerSchema = new mongoose.Schema({
-    phone: { type: String, required: true, unique: true },
-    name: { type: String, default: 'Walk-in Guest' },
-    points: { type: Number, default: 0 },
-    totalSpent: { type: Number, default: 0 }
-}, { timestamps: true });
-
-const Customer = mongoose.model('Customer', customerSchema);
-
 const orderItemSchema = new mongoose.Schema({
     code: { type: String, required: true },
     name: { type: String, required: true },
@@ -66,8 +57,6 @@ const billSchema = new mongoose.Schema({
     subtotal: { type: Number, required: true },
     tax: { type: Number, default: 0 },
     discount: { type: Number, default: 0 },
-    pointsRedeemed: { type: Number, default: 0 },
-    pointsEarned: { type: Number, default: 0 },
     grandTotal: { type: Number, required: true },
     createdAt: { type: Date, default: Date.now },
     status: { type: String, enum: ['COMPLETED', 'CANCELLED'], default: 'COMPLETED' }
@@ -121,62 +110,34 @@ const INITIAL_MENU_DATA = [
     { code: "CM200", name: "Chai Post Mix Masala", variant: "Mega Pkt", price: 200, category: "masala", stock: 25 }
 ];
 
-// Database Connection
-mongoose.connect(MONGO_URI);
-async function initDB() {
-    try {
-        console.log('✅ Connected to MongoDB (The Bangla Laung Elaichi Cafe Database)');
-        const count = await InventoryItem.countDocuments();
-        if (count === 0) {
-            for (let item of INITIAL_MENU_DATA) {
-                await InventoryItem.create({
-                    code: item.code,
-                    name: item.name,
-                    variant: item.variant,
-                    category: item.category,
-                    stock: item.stock,
-                    unitPrice: item.price
-                });
+// Database Connection with graceful initialization
+mongoose.connect(MONGO_URI)
+    async function initDB() {
+        try {
+            console.log('✅ Connected to MongoDB (The Bangla Laung Elaichi Cafe Database)');
+            const count = await InventoryItem.countDocuments();
+            if (count === 0) {
+                for (let item of INITIAL_MENU_DATA) {
+                    await InventoryItem.create({
+                        code: item.code,
+                        name: item.name,
+                        variant: item.variant,
+                        category: item.category,
+                        stock: item.stock,
+                        unitPrice: item.price
+                    });
+                }
+                console.log('📦 Initial Inventory Seeded Successfully.');
             }
-            console.log('📦 Initial Inventory Seeded Successfully.');
+        } catch (err) {
+            console.log('⚠️ MongoDB Connection Note: Running in standalone memory mode until DB connects.', err.message);
         }
-    } catch (err) {
-        console.log('⚠️ MongoDB Connection Note: Running in standalone memory mode until DB connects.', err.message);
     }
-}
 initDB();
 
 // ==========================================
 // API ROUTES
 // ==========================================
-
-// Fetch Customer Points by Phone Number
-app.get('/api/customers/points/:phone', async (req, res) => {
-    try {
-        const { phone } = req.params;
-        if (!phone || phone.length < 10) {
-            return res.json({ success: true, points: 0, redeemableAmount: 0 });
-        }
-
-        let customer;
-        if (mongoose.connection.readyState === 1) {
-            customer = await Customer.findOne({ phone });
-        }
-
-        const points = customer ? customer.points : 0;
-        const redeemableAmount = Math.floor(points / 25); // 25 points = Rs 1
-
-        return res.json({
-            success: true,
-            phone,
-            name: customer ? customer.name : 'Walk-in Guest',
-            points,
-            redeemableAmount
-        });
-    } catch (error) {
-        res.status(500).json({ success: false, message: 'Error fetching points.' });
-    }
-});
 
 app.get('/api/menu', async (req, res) => {
     try {
@@ -243,10 +204,9 @@ app.post('/api/inventory/update', async (req, res) => {
     }
 });
 
-// Bill Creation Route with Automated Rewards Logic
 app.post('/api/bills/create', async (req, res) => {
     try {
-        const { customerName, customerPhone, paymentMethod, items, subtotal, tax, discount, pointsRedeemed, grandTotal } = req.body;
+        const { customerName, customerPhone, paymentMethod, items, subtotal, tax, discount, grandTotal } = req.body;
 
         if (!items || items.length === 0) {
             return res.status(400).json({ success: false, message: 'Cart cannot be empty.' });
@@ -255,10 +215,6 @@ app.post('/api/bills/create', async (req, res) => {
         const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
         const randomNum = Math.floor(1000 + Math.random() * 9000);
         const invoiceNo = `BLEC-${todayStr}-${randomNum}`;
-
-        // 1 Point per Rs 50 spent on Grand Total
-        const pointsEarned = Math.floor(grandTotal / 50);
-        const usedPoints = parseInt(pointsRedeemed || 0) * 25; // 25 points = Rs 1 discount
 
         const newBillData = {
             invoiceNo,
@@ -269,8 +225,6 @@ app.post('/api/bills/create', async (req, res) => {
             subtotal: parseFloat(subtotal),
             tax: parseFloat(tax || 0),
             discount: parseFloat(discount || 0),
-            pointsRedeemed: usedPoints,
-            pointsEarned,
             grandTotal: parseFloat(grandTotal),
             createdAt: new Date()
         };
@@ -281,24 +235,11 @@ app.post('/api/bills/create', async (req, res) => {
             const billDoc = new Bill(newBillData);
             savedBill = await billDoc.save();
 
-            // Deduct Stock
             for (let orderedItem of items) {
                 await InventoryItem.findOneAndUpdate(
                     { code: orderedItem.code },
                     { $inc: { stock: -orderedItem.qty } }
                 );
-            }
-
-            // Update Customer Points & History
-            if (customerPhone && customerPhone !== 'N/A' && customerPhone.length >= 10) {
-                let cust = await Customer.findOne({ phone: customerPhone });
-                if (!cust) {
-                    cust = new Customer({ phone: customerPhone, name: customerName, points: 0, totalSpent: 0 });
-                }
-                cust.name = customerName || cust.name;
-                cust.points = Math.max(0, cust.points - usedPoints + pointsEarned);
-                cust.totalSpent += parseFloat(grandTotal);
-                await cust.save();
             }
         }
 
@@ -307,9 +248,7 @@ app.post('/api/bills/create', async (req, res) => {
         res.status(201).json({
             success: true,
             message: 'Bill created successfully!',
-            bill: savedBill,
-            pointsEarned,
-            usedPoints
+            bill: savedBill
         });
 
     } catch (error) {
@@ -318,7 +257,7 @@ app.post('/api/bills/create', async (req, res) => {
     }
 });
 
-// Analytics API
+// Advanced Analytics API with Qty, ABV, UPT for Day, Week, and Month
 app.get('/api/reports/summary', async (req, res) => {
     try {
         if (mongoose.connection.readyState === 1) {
@@ -390,7 +329,7 @@ app.get('/api/reports/summary', async (req, res) => {
         } else {
             return res.json({
                 success: true,
-                message: 'MongoDB disconnected.'
+                message: 'MongoDB disconnected. Serving live local records.'
             });
         }
     } catch (error) {
@@ -398,7 +337,7 @@ app.get('/api/reports/summary', async (req, res) => {
     }
 });
 
-// Single-Column Clean Thermal PDF Invoice Route with Clean "Rs." Alignment
+// Fixed Single-Column Clean Thermal PDF Invoice Generator Route
 app.get('/api/bills/pdf/:invoiceNo', async (req, res) => {
     try {
         const { invoiceNo } = req.params;
@@ -416,13 +355,13 @@ app.get('/api/bills/pdf/:invoiceNo', async (req, res) => {
                 customerPhone: '9005041462',
                 paymentMethod: 'CASH',
                 items: [
-                    { name: 'Coffee Special', variant: 'Special', price: 30, qty: 1, total: 30 },
-                    { name: 'Paneer Steam Momo', variant: 'Half', price: 140, qty: 1, total: 140 }
+                    { name: 'Rajwadi Chai', variant: 'Royal Kullad', price: 125, qty: 1, total: 125 },
+                    { name: 'Veg Fry Momo', variant: 'Full', price: 170, qty: 1, total: 170 }
                 ],
-                subtotal: 170,
+                subtotal: 295,
                 tax: 0,
                 discount: 0,
-                grandTotal: 170
+                grandTotal: 295
             };
         }
 
@@ -456,23 +395,23 @@ app.get('/api/bills/pdf/:invoiceNo', async (req, res) => {
             doc.text(`${index + 1}. ${item.name} (${item.variant})`);
             
             doc.font('Helvetica').fontSize(7);
-            doc.text(`   Qty: ${item.qty}   |   Price: Rs. ${item.price}   |   Total: Rs. ${item.total}`, { align: 'right' });
+            doc.text(`   Qty: ${item.qty}   |   Price: ₹${item.price}   |   Total: ₹${item.total}`, { align: 'right' });
             doc.moveDown(0.2);
         });
 
         doc.text('----------------------------------------------------------');
 
-        // --- TOTALS SECTION (Clean Rs. Text Alignment) ---
+        // --- TOTALS SECTION ---
         doc.font('Helvetica').fontSize(7.5);
-        doc.text(`Subtotal    : Rs. ${billData.subtotal.toFixed(2)}`, { align: 'right' });
+        doc.text(`Subtotal      : ₹${billData.subtotal.toFixed(2)}`, { align: 'right' });
         
         if (billData.discount > 0) {
-            doc.text(`Discount    : -Rs. ${billData.discount.toFixed(2)}`, { align: 'right' });
+            doc.text(`Markdown/Disc : -₹${billData.discount.toFixed(2)}`, { align: 'right' });
         }
 
         doc.moveDown(0.2);
         doc.font('Helvetica-Bold').fontSize(10);
-        doc.text(`GRAND TOTAL : Rs. ${billData.grandTotal.toFixed(2)}`, { align: 'right' });
+        doc.text(`GRAND TOTAL: ₹${billData.grandTotal.toFixed(2)}`, { align: 'right' });
         
         doc.font('Helvetica').fontSize(7);
         doc.text('----------------------------------------------------------');
